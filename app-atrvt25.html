@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ATRÉVETE</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:10px; }
+    label { display:block; margin-top:10px; font-size:16px; }
+    select, input[type="text"], input[type="number"], input[type="time"], textarea {
+      width:100%; font-size:16px; padding:10px; box-sizing:border-box;
+    }
+    button { width:100%; height:48px; margin-top:10px; font-size:16px; }
+    .checkbox-group { display:flex; flex-wrap:wrap; }
+    .checkbox-group label { width:50%; font-size:16px; }
+    .program { border:1px solid #ccc; margin-top:10px; padding:10px; }
+  </style>
+</head>
+<body>
+  <h1>ATRÉVETE</h1>
+  <form id="sessionForm">
+    <label for="terapeuta">Terapeuta</label>
+    <select id="terapeuta" name="terapeuta"></select>
+    <label for="estudiante">Estudiante</label>
+    <select id="estudiante" name="estudiante"></select>
+    <div id="programasContainer"></div>
+    <button type="button" id="addProgramBtn">+ Agregar Programa</button>
+    <button type="submit">Guardar Sesión</button>
+  </form>
+
+  <script>
+    // Datos iniciales
+    var terapeutas = [
+      "Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S","Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"
+    ];
+    var estudiantes = [
+      "Abraham Chapetón","Adolfo Hernández","Adrián","Adriana García","Amber Lafage","Ana María","Andrei González","Andrés Cruz","Ángel Gabriel","Ángel Gudiel","Bruno Arévalo","Bruno Torres","Christopher Gamas","Cristian Molina","Daniel Samayoa","Diego Lima","Diego Pérez","Dylan Ceijas","Ethan Forno","Fabián Álvarez","Gabriel Ruíz","Ivanna Recinos","Javier Maldonado","Jorge Sánchez","José Miguel López","Julio González","Luis André Arriola","Luis Felipe Guzmán","Mariana Solís","Mateo Toribio","Mathías Mendoza","Matías Contreras","Matías Guaré","Matías Osorio","Miranda Martínez","Nicholas Mancilla","Pablo Vielman","René Torres","Rodrigo Chigüichon","Santiago Ruíz","Tier Xitumul","Xander García"
+    ];
+    var programas = [
+      "Agilidad mental","Aleatorio acciones","Aleatorio búsqueda de objetos","Aleatorio emociones","Aleatorio dictado números","Aleatorio ecoicas fonemas","Aleatorio intraverbales","Aleatorio ecoicas palabras","Aleatorio ecoicas silabas","Aleatorio escolares","Aleatorio espejo","Aleatorio igualación auditiva","Aleatorio igualación 3D","Aleatorio imitación con objeto","Aleatorio imitación c/s objeto","Aleatorio imitación sin objeto","Aleatorio lectura comprensiva","Aleatorio lectura palabras","Aleatorio lectura silábica","Aleatorio partes del cuerpo","Aleatorio seguimiento instrucciones c/objeto","Aleatorio seguimiento instrucciones s/objeto","Aleatorio tactos animales","Aleatorio tactos comida","Aleatorio tactos letras","Aleatorio tactos números","Aleatorio tactos objetos","Aprestamiento","Asociaciones","Autonomía","Autoclíticos","Búsqueda de objetos","Categorías","Cálculo mental","Colorear","Comida","Computación","Conceptos matemáticos","Condicionamiento caras","Condicionamiento colorear","Condicionamiento encajables","Condicionamiento en mesa","Condicionamiento paleta","Condicionamiento juegos","Condicionamiento libros","Condicionamiento libros en el suelo","Condicionamiento plasticina","Condicionamiento saltar","Condicionamiento témperas","Condicionamiento rompecabezas","Contacto visual","Conteo","Control postural","Copia","Copia bisilábica","Corte de cabello","Deícticos","Deletreo","Dictado","Dictado letras","Dictado números","Dictado teclado","Dictado silabas","Discriminación","Discriminación auditiva","Discriminación y lectura de palabras","Ecoica fonemas","Ecoica frases","Ecoica oraciones","Ecoica palabras","Ecoica secuencias","Ecoica silabas","Entrenamiento a padres","Escritura","Espera","Esperar turno","Flexibilidad","Habilidades numéricas","Historias","Hojas de trabajo","Igualación 2D/2D","Igualación 2D/3D","Igualación 3D/3D","Igualación animales","Igualación auditiva","Igualación categorías","Igualación comida","Igualación de colores","Igualación letras","Igualación números","Igualación objetos","Igualación palabras","Igualación partes del cuerpo","Igualación silabas","Igualación táctil","Igualación texto/foto","Imitación c/s objeto","Imitación con objeto","Imitación en espejo","Imitación sin objeto","Interacción juguetes","Interacción social","Intercambio de reforzadores","Intraverbales","Lavado de dientes","Lectura comprensiva","Lectura global","Lectura oraciones","Lectura palabras","Lectura silábica","Mandos","Mandos actividades","Mandos aversivos","Mandos comestibles","Mandos juguetes","Mandos otros lugares","Matemáticas","Motor","Motricidad fina","Multiplicaciones","Número/numeral","Opuestos","Oral motor","Partes del cuerpo","Praxias","Pre-escritura","Pre-escritura silabas","Pre-lectura","Pronombres","Recortar","Reloj","Respuesta al nombre","Restas","Rimas","Rompecabezas","Secuencias","Seguimiento instrucciones c/s objeto","Seguimiento instrucciones con objeto","Seguimiento instrucciones escritas","Seguimiento instrucciones sin objeto","Seguimiento de instrucciones vocales","Selección 2D","Selección 3D","Selección acción","Selección animales","Selección colores","Selección comida","Selección con características","Selección escolares","Selección fonemas","Selección letras","Selección números","Selección objetos","Selección palabras","Selección partes del cuerpo","Selección silabas","Selección varios","Señalar cuaderno","Sumas","Tacto acciones","Tacto animales","Tacto colores","Tacto comida","Tacto emociones","Tacto escolares","Tacto impuro números","Tacto letras","Tactos lugares","Tacto números","Tacto objetos","Tacto personas","Tacto profesiones","Tacto puro números","Tacto vestimenta","Tactos sensoriales","Tactos situaciones","Tactos varios","Tiempo Colegio","Toma de perspectiva","Tracking visual"
+    ];
+
+    // Inicializar dropdowns
+    function inicializar() {
+      var t = document.getElementById("terapeuta");
+      var e = document.getElementById("estudiante");
+      for (var i = 0; i < terapeutas.length; i++) {
+        var opt = document.createElement("option"); opt.text = terapeutas[i]; t.add(opt);
+      }
+      for (var j = 0; j < estudiantes.length; j++) {
+        var opt2 = document.createElement("option"); opt2.text = estudiantes[j]; e.add(opt2);
+      }
+    }
+
+    // Agregar bloque de programa
+    function agregarPrograma() {
+      var container = document.getElementById("programasContainer");
+      var div = document.createElement("div"); div.className = "program";
+      var options = '';
+      for (var k = 0; k < programas.length; k++) {
+        options += '<option>' + programas[k] + '</option>';
+      }
+      div.innerHTML =
+        '<label>Programa<select name="programa[]">' + options + '</select></label>' +
+        '<label>Conj/Nivel<input name="conj[]" type="text"></label>' +
+        '<label>Elementos<input name="elementos[]" type="text"></label>' +
+        '<label>Ensayos +<input name="positivos[]" type="number"></label>' +
+        '<label>Ensayos -<input name="negativos[]" type="number"></label>' +
+        '<div class="checkbox-group">' +
+        '<label><input type="checkbox" name="ayudaNinguna[]">Ninguna</label>' +
+        '<label><input type="checkbox" name="ayudaVerbal[]">Verbal</label>' +
+        '<label><input type="checkbox" name="ayudaGestual[]">Gestual</label>' +
+        '<label><input type="checkbox" name="ayudaFparcial[]">Física parcial</label>' +
+        '<label><input type="checkbox" name="ayudaFtotal[]">Física total</label>' +
+        '<label><input type="checkbox" name="ayudaFsombra[]">Física sombra</label>' +
+        '</div>' +
+        '<div class="checkbox-group">' +
+        '<label><input type="checkbox" name="refComestible[]">Comestible</label>' +
+        '<label><input type="checkbox" name="refSensorial[]">Sensorial</label>' +
+        '<label><input type="checkbox" name="refSocial[]">Social</label>' +
+        '<label><input type="checkbox" name="refTangible[]">Tangible</label>' +
+        '<label><input type="checkbox" name="refEconomia[]">Economía</label>' +
+        '<label><input type="checkbox" name="refActividad[]">Actividad</label>' +
+        '</div>' +
+        '<label>Tipo reforzamiento<select name="tipoRef[]">' +
+        '<option>Continuo</option><option>Variable</option><option>Prueba/test</option></select></label>' +
+        '<label>Tiempo colegio<input type="time" name="tiempoColegio[]"></label>' +
+        '<label>Tiempo papás<input type="time" name="tiempoPapas[]"></label>' +
+        '<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>' +
+        '<label>Comentario<textarea name="comentario[]"></textarea></label>';
+      container.appendChild(div);
+    }
+
+    // Enviar datos a Google Apps Script
+    function enviarDatos() {
+      var form = document.getElementById("sessionForm");
+      var datos = new FormData(form);
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://script.google.com/macros/s/AKfycbwcUJL_6IOB7C_d2vvZmtKntyRfdbYnZfJYVMxT_MyE6SPTMwjmHP7n-1cXMNbf8j20Xg/exec", true);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          alert("Sesión guardada correctamente");
+          form.reset();
+        } else {
+          alert("Error al guardar");
+        }
+      };
+      xhr.onerror = function() {
+        alert("Error de conexión");
+      };
+      xhr.send(datos);
+    }
+
+    // Event listeners
+    document.getElementById("addProgramBtn").addEventListener("click", agregarPrograma);
+    document.getElementById("sessionForm").addEventListener("submit", function(evt) {
+      evt.preventDefault(); enviarDatos();
+    });
+    document.addEventListener("DOMContentLoaded", inicializar);
+  </script>
+</body>
+</html>
