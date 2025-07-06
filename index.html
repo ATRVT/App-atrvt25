@@ -6,11 +6,9 @@
   <title>ATRÉVETE</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:10px; }
-    h1 { font-size:24px; font-weight:bold; margin-bottom:20px; }
+    h1, h2 { margin-top:20px; font-weight:bold; }
     label, legend { display:block; margin-top:10px; font-size:16px; }
-    select, input[type="text"], input[type="number"], input[type="time"], textarea, button {
-      width:100%; font-size:16px; padding:8px; box-sizing:border-box; margin-top:5px;
-    }
+    select, input, textarea, button { width:100%; font-size:16px; padding:8px; box-sizing:border-box; margin-top:5px; }
     button { height:48px; }
     .program { border:1px solid #ccc; margin-top:10px; padding:10px; }
     .config-section { border:1px dashed #888; margin-top:20px; padding:10px; }
@@ -62,21 +60,36 @@
 
   <script>
     var scriptUrl = 'https://script.google.com/macros/s/AKfycbwcUJL_6IOB7C_d2vvZmtKntyRfdbYnZfJYVMxT_MyE6SPTMwjmHP7n-1cXMNbf8j20Xg/exec';
+
+    // Listas por defecto
+    var defaultTerapeutas = ["Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S","Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"];
+    var defaultEstudiantes = ["Abraham Chapetón","Adolfo Hernández","Adrián","Adriana García","Amber Lafage","Ana María","Andrei González","Andrés Cruz","Ángel Gabriel","Ángel Gudiel","Bruno Arévalo","Bruno Torres","Christopher Gamas","Cristian Molina","Daniel Samayoa","Diego Lima","Diego Pérez","Dylan Ceijas","Ethan Forno","Fabián Álvarez","Gabriel Ruíz","Ivanna Recinos","Javier Maldonado","Jorge Sánchez","José Miguel López","Julio González","Luis André Arriola","Luis Felipe Guzmán","Mariana Solís","Mateo Toribio","Mathías Mendoza","Matías Contreras","Matías Guaré","Matías Osorio","Miranda Martínez","Nicholas Mancilla","Pablo Vielman","René Torres","Rodrigo Chigüichon","Santiago Ruíz","Tier Xitumul","Xander García"];
+    var defaultProgramas = [
+      "Agilidad mental","Aleatorio acciones","Aleatorio búsqueda de objetos","Aleatorio emociones","Aleatorio dictado números","Aleatorio ecoicas fonemas","Aleatorio intraverbales","Aleatorio ecoicas palabras","Aleatorio ecoicas silabas","Aleatorio escolares","Aleatorio espejo","Aleatorio igualación auditiva","Aleatorio igualación 3D","Aleatorio imitación con objeto","Aleatorio imitación c/s objeto","Aleatorio imitación sin objeto","Aleatorio lectura comprensiva","Aleatorio lectura palabras","Aleatorio lectura silábica","Aleatorio partes del cuerpo","Aleatorio seguimiento instrucciones c/objeto","Aleatorio seguimiento instrucciones s/objeto","Aleatorio tactos animales","Aleatorio tactos comida","Aleatorio tactos letras","Aleatorio tactos números","Aleatorio tactos objetos","Aprestamiento","Asociaciones","Autonomía","Autoclíticos","Búsqueda de objetos","Categorías","Cálculo mental","Colorear","Comida","Computación","Conceptos matemáticos","Condicionamiento caras","Condicionamiento colorear","Condicionamiento encajables","Condicionamiento en mesa","Condicionamiento paleta","Condicionamiento juegos","Condicionamiento libros","Condicionamiento libros en el suelo","Condicionamiento plasticina","Condicionamiento saltar","Condicionamiento témperas","Condicionamiento rompecabezas","Contacto visual","Conteo","Control postural","Copia","Copia bisilábica","Corte de cabello","Deícticos","Deletré","Dictado letras","Dictado números","Dictado teclado","Dictado silabas","Discriminación","Discriminación auditiva","Discriminación y lectura de palabras","Ecoica fonemas","Ecoica frases","Ecoica oraciones","Ecoica palabras","Ecoica secuencias","Ecoica silabas","Entrenamiento a padres","Escritura","Espera","Esperar turno","Flexibilidad","Habilidades numéricas","Historias","Hojas de trabajo","Igualación 2D/2D","Igualación 2D/3D","Igualación 3D/3D","Igualación animales","Igualación auditiva","Igualación categorías","Igualación comida","Igualación de colores","Igualación letras","Igualación números","Igualación objetos","Igualación palabras","Igualación partes del cuerpo","Igualación silabas","Igualación táctil","Igualación texto/foto","Imitación c/s objeto","Imitación con objeto","Imitación en espejo","Imitación sin objeto","Interacción juguetes","Interacción social","Intercambio de reforzadores","Intraverbales","Lavado de dientes","Lectura comprensiva","Lectura global","Lectura oraciones","Lectura palabras","Lectura silábica","Mandos","Mandos actividades","Mandos aversivos","Mandos comestibles","Mandos juguetes","Mandos otros lugares","Matemáticas","Motor","Motricidad fina","Multiplicaciones","Número/numeral","Opuestos","Oral motor","Partes del cuerpo","Praxias","Pre-escritura","Pre-escritura silabas","Pre-lectura","Pronombres","Recortar","Reloj","Respuesta al nombre","Restas","Rimas","Rompecabezas","Secuencias","Seguimiento instrucciones c/s objeto","Seguimiento instrucciones con objeto","Seguimiento instrucciones escritas","Seguimiento instrucciones sin objeto","Seguimiento de instrucciones vocales","Selección 2D","Selección 3D","Selección acción","Selección animales","Selección colores","Selección comida","Selección con características","Selección escolares","Selección fonemas","Selección letras`,`...`];
+
     var terapeutas = [], estudiantes = [], programas = [];
+
+    function loadDefaults() {
+      terapeutas = defaultTerapeutas.slice();
+      estudiantes = defaultEstudiantes.slice();
+      programas   = defaultProgramas.slice();
+    }
 
     function getConfig() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', scriptUrl + '?action=getConfig', true);
       xhr.onload = function() {
         if (xhr.status === 200) {
-          var cfg = JSON.parse(xhr.responseText);
-          terapeutas = cfg.terapeutas; estudiantes = cfg.estudiantes; programas = cfg.programas;
-        } else {
-          alert('Error al cargar configuración');
-        }
+          try {
+            var cfg = JSON.parse(xhr.responseText);
+            terapeutas = (cfg.terapeutas && cfg.terapeutas.length) ? cfg.terapeutas : defaultTerapeutas;
+            estudiantes = (cfg.estudiantes && cfg.estudiantes.length) ? cfg.estudiantes : defaultEstudiantes;
+            programas   = (cfg.programas   && cfg.programas.length)   ? cfg.programas   : defaultProgramas;
+          } catch (e) { loadDefaults(); }
+        } else { loadDefaults(); }
         refreshAll();
       };
-      xhr.onerror = function() { alert('Error de conexión al cargar configuración'); refreshAll(); };
+      xhr.onerror = function() { loadDefaults(); refreshAll(); };
       xhr.send();
     }
 
@@ -100,11 +113,11 @@
     function refreshAll() {
       refreshDropdown('terapeuta', terapeutas, '-- selecciona terapeuta --');
       refreshDropdown('estudiante', estudiantes, '-- selecciona estudiante --');
-      var lt = document.getElementById('list-terapeutas'); lt.innerHTML = '';
+      document.getElementById('list-terapeutas').innerHTML = '';
       terapeutas.forEach(function(t) { addConfigItem('list-terapeutas','terapeuta', t); });
-      var le = document.getElementById('list-estudiantes'); le.innerHTML = '';
+      document.getElementById('list-estudiantes').innerHTML = '';
       estudiantes.forEach(function(e) { addConfigItem('list-estudiantes','estudiante', e); });
-      var lp = document.getElementById('list-programas'); lp.innerHTML = '';
+      document.getElementById('list-programas').innerHTML = '';
       programas.forEach(function(p) { addConfigItem('list-programas','programa', p); });
     }
 
@@ -127,11 +140,9 @@
       html += '<label>Ensayos +<input name="positivos[]" type="number"></label>';
       html += '<label>Ensayos -<input name="negativos[]" type="number"></label>';
       html += '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
-      ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){ html += '<label><input type="checkbox" name="ayuda' + a.replace(/ /g,'') + '[]"> ' + a + '</label>'; });
-      html += '</div></fieldset>';
+      ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){ html += '<label><input type="checkbox" name="ayuda' + a.replace(/ /g,'') + '[]"> ' + a + '</label>'; }); html += '</div></fieldset>';
       html += '<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
-      ['Comestible','Sensorial','Social','Tangible','Economía','Actividad'].forEach(function(r){ html += '<label><input type="checkbox" name="ref' + r + '[]"> ' + r + '</label>'; });
-      html += '</div></fieldset>';
+      ['Comestible','Sensorial','Social','Tangible','Economía','Actividad'].forEach(function(r){ html += '<label><input type="checkbox" name="ref' + r + '[]"> ' + r + '</label>'; }); html += '</div></fieldset>';
       html += '<label>Tipo reforzamiento<select name="tipoRef[]"><option>Continuo</option><option>Variable</option><option>Prueba/test</option></select></label>';
       html += '<label>Tiempo colegio<input type="time" name="tiempoColegio[]"></label>';
       html += '<label>Tiempo papás<input type="time" name="tiempoPapas[]"></label>';
@@ -141,10 +152,10 @@
     }
 
     function enviarDatos() {
-      var form = document.getElementById('sessionForm');
-      var fd = new FormData(form); fd.append('action','saveSession');
+      var form = document.getElementById('sessionForm'), fd = new FormData(form);
+      fd.append('action','saveSession');
       var xhr = new XMLHttpRequest(); xhr.open('POST', scriptUrl, true);
-      xhr.onload = function() { if (xhr.status===200) { alert('Sesión guardada'); form.reset(); document.getElementById('programasContainer').innerHTML=''; } else alert('Error al guardar'); };
+      xhr.onload = function() { if (xhr.status===200) { alert('Sesión guardada'); form.reset(); document.getElementById('programasContainer').innerHTML=''; } else alert('Error al guardar sesión'); };
       xhr.onerror = function(){ alert('Error de conexión'); };
       xhr.send(fd);
     }
@@ -154,7 +165,7 @@
     document.getElementById('add-estudiante-btn').addEventListener('click', function(){ var n=document.getElementById('new-estudiante').value.trim(); if(n) saveConfig('estudiante',n); });
     document.getElementById('add-programa-btn').addEventListener('click', function(){ var n=document.getElementById('new-programa').value.trim(); if(n) saveConfig('programa',n); });
     document.getElementById('sessionForm').addEventListener('submit', function(e){ e.preventDefault(); enviarDatos(); });
-    document.addEventListener('DOMContentLoaded', getConfig);
+    document.addEventListener('DOMContentLoaded', function(){ getConfig(); });
   </script>
 </body>
 </html>
