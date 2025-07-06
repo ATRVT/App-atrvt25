@@ -1,29 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ATRÉVETE</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:10px; }
-    h1, h2 { margin-top:20px; font-weight:bold; }
+    h1 { margin-bottom:20px; font-size:24px; }
     label, legend { display:block; margin-top:10px; font-size:16px; }
-    select, input[type="text"], input[type="number"], input[type="time"], textarea, button {
-      width:100%; font-size:16px; padding:10px; box-sizing:border-box; margin-top:5px;
-    }
+    select, input, textarea, button { width:100%; font-size:16px; padding:8px; box-sizing:border-box; margin-top:5px; }
     button { height:48px; }
     .program { border:1px solid #ccc; margin-top:10px; padding:10px; }
-    .config-section { border:1px dashed #888; margin-top:20px; padding:10px; }
-    .list-item { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
-    .delete-btn { background:#e74c3c; color:#fff; border:none; padding:5px 8px; font-size:14px; cursor:pointer; }
-    fieldset { border:1px solid #ccc; margin-top:15px; padding:10px; }
-    .checkbox-group { display:flex; flex-wrap:wrap; margin-top:5px; }
-    .checkbox-group label { width:48%; }
   </style>
 </head>
 <body>
   <h1>ATRÉVETE</h1>
-
   <form id="sessionForm">
     <label for="terapeuta">Terapeuta</label>
     <select id="terapeuta" name="terapeuta">
@@ -40,39 +31,13 @@
     <button type="submit">Guardar Sesión</button>
   </form>
 
-  <div class="config-section">
-    <h2>⚙️ Configuración</h2>
-    <fieldset>
-      <legend>Terapeutas</legend>
-      <div id="list-terapeutas"></div>
-      <input type="text" id="new-terapeuta" placeholder="Nombre nuevo terapeuta">
-      <button type="button" id="add-terapeuta-btn">Añadir terapeuta</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Estudiantes</legend>
-      <div id="list-estudiantes"></div>
-      <input type="text" id="new-estudiante" placeholder="Nombre nuevo estudiante">
-      <button type="button" id="add-estudiante-btn">Añadir estudiante</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Programas</legend>
-      <div id="list-programas" style="max-height:150px; overflow:auto;"></div>
-      <input type="text" id="new-programa" placeholder="Nombre nuevo programa">
-      <button type="button" id="add-programa-btn">Añadir programa</button>
-    </fieldset>
-  </div>
-
   <script>
-    var scriptUrl = 'https://script.google.com/macros/s/AKfycbwcUJL_6IOB7C_d2vvZmtKntyRfdbYnZfJYVMxT_MyE6SPTMwjmHP7n-1cXMNbf8j20Xg/exec';
-
-    // Defaults arrays
-    var defaultTerapeutas = [
+    // Arrays estáticos completos
+    var terapeutas = [
       "Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S",
       "Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"
     ];
-    var defaultEstudiantes = [
+    var estudiantes = [
       "Abraham Chapetón","Adolfo Hernández","Adrián","Adriana García","Amber Lafage","Ana María","Andrei González",
       "Andrés Cruz","Ángel Gabriel","Ángel Gudiel","Bruno Arévalo","Bruno Torres","Christopher Gamas","Cristian Molina",
       "Daniel Samayoa","Diego Lima","Diego Pérez","Dylan Ceijas","Ethan Forno","Fabián Álvarez","Gabriel Ruíz",
@@ -81,7 +46,7 @@
       "Matías Osorio","Miranda Martínez","Nicholas Mancilla","Pablo Vielman","René Torres","Rodrigo Chigüichon",
       "Santiago Ruíz","Tier Xitumul","Xander García"
     ];
-    var defaultProgramas = [
+    var programas = [
       "Agilidad mental","Aleatorio acciones","Aleatorio búsqueda de objetos","Aleatorio emociones","Aleatorio dictado números",
       "Aleatorio ecoicas fonemas","Aleatorio intraverbales","Aleatorio ecoicas palabras","Aleatorio ecoicas silabas",
       "Aleatorio escolares","Aleatorio espejo","Aleatorio igualación auditiva","Aleatorio igualación 3D","Aleatorio imitación con objeto",
@@ -117,137 +82,33 @@
       "Tactos sensoriales","Tactos situaciones","Tactos varios","Tiempo Colegio","Toma de perspectiva","Tracking visual"
     ];
 
-    var terapeutas = [], estudiantes = [], programas = [];
-
-    function getConfig() {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', scriptUrl + '?action=getConfig', true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          var cfg = JSON.parse(xhr.responseText);
-          terapeutas = cfg.terapeutas.length ? cfg.terapeutas : defaultTerapeutas;
-          estudiantes = cfg.estudiantes.length ? cfg.estudiantes : defaultEstudiantes;
-          programas   = cfg.programas.length   ? cfg.programas   : defaultProgramas;
-        } else {
-          terapeutas = defaultTerapeutas;
-          estudiantes = defaultEstudiantes;
-          programas   = defaultProgramas;
-        }
-        refreshAll();
-      };
-      xhr.onerror = function() {
-        terapeutas = defaultTerapeutas;
-        estudiantes = defaultEstudiantes;
-        programas   = defaultProgramas;
-        refreshAll();
-      };
-      xhr.send();
-    }
-
-    function saveConfig(type, name, remove) {
-      var xhr = new XMLHttpRequest();
-      var params = 'action=saveConfig&type=' + type + '&name=' + encodeURIComponent(name);
-      if (remove) params += '&remove=true';
-      xhr.open('POST', scriptUrl, true);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      xhr.onload = function() { if (xhr.status === 200) getConfig(); else alert('Error al guardar configuración'); };
-      xhr.send(params);
-    }
-
-    function refreshDropdown(id, items, placeholder) {
-      var sel = document.getElementById(id);
-      sel.innerHTML = '<option value="">' + placeholder + '</option>';
-      items.forEach(function(item) {
-        var opt = document.createElement('option'); opt.value = item; opt.text = item;
-        sel.appendChild(opt);
+    function inicializar() {
+      var tSel = document.getElementById('terapeuta');
+      terapeutas.forEach(function(t) {
+        var opt = document.createElement('option'); opt.value = t; opt.text = t; tSel.add(opt);
+      });
+      var eSel = document.getElementById('estudiante');
+      estudiantes.forEach(function(e) {
+        var opt = document.createElement('option'); opt.value = e; opt.text = e; eSel.add(opt);
       });
     }
 
-    function refreshAll() {
-      refreshDropdown('terapeuta', terapeutas, '-- selecciona terapeuta --');
-      refreshDropdown('estudiante', estudiantes, '-- selecciona estudiante --');
-      document.getElementById('list-terapeutas').innerHTML = '';
-      terapeutas.forEach(function(t) { addConfigItem('list-terapeutas','terapeuta',t); });
-      document.getElementById('list-estudiantes').innerHTML = '';
-      estudiantes.forEach(function(e) { addConfigItem('list-estudiantes','estudiante',e); });
-      document.getElementById('list-programas').innerHTML = '';
-      programas.forEach(function(p) { addConfigItem('list-programas','programa',p); });
-    }
-
-    function addConfigItem(containerId, type, name) {
-      var container = document.getElementById(containerId);
-      var div = document.createElement('div'); div.className = 'list-item';
-      var span = document.createElement('span'); span.textContent = name;
-      var btn = document.createElement('button'); btn.className = 'delete-btn'; btn.textContent = 'Eliminar';
-      btn.onclick = function() { if (confirm('Eliminar ' + name + '?')) saveConfig(type, name, true); };
-      div.appendChild(span); div.appendChild(btn);
-      container.appendChild(div);
-    }
-
-    function agregarProgramaForm() {
+    function agregarPrograma() {
       var cont = document.getElementById('programasContainer');
       var div = document.createElement('div'); div.className = 'program';
-
-      var html = '';
-      html += '<label>Programa<select name="programa[]">';
-      html += '<option value="">-- elige programa --</option>';
+      var html = '<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
       programas.forEach(function(p) { html += '<option>' + p + '</option>'; });
-      html += '</select></label>';
-      html += '<label>Conj/Nivel<input name="conj[]" type="text"></label>';
-      html += '<label>Elementos<input name="elementos[]" type="text"></label>';
-      html += '<label>Ensayos +<input name="positivos[]" type="number"></label>';
-      html += '<label>Ensayos -<input name="negativos[]" type="number"></label>';
-      html += '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
-      ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){
-        html += '<label><input type="checkbox" name="ayuda' + a.replace(/ /g,'') + '[]"> ' + a + '</label>';
-      });
-      html += '</div></fieldset>';
-      html += '<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
-      ['Comestible','Sensorial','Social','Tangible','Economía','Actividad'].forEach(function(r){
-        html += '<label><input type="checkbox" name="ref' + r + '[]"> ' + r + '</label>';
-      });
-      html += '</div></fieldset>';
-      html += '<label>Tipo reforzamiento<select name="tipoRef[]"><option>Continuo</option><option>Variable</option><option>Prueba/test</option></select></label>';
-      html += '<label>Tiempo colegio<input type="time" name="tiempoColegio[]"></label>';
-      html += '<label>Tiempo papás<input type="time" name="tiempoPapas[]"></label>';
-      html += '<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>';
-      html += '<label>Comentario<textarea name="comentario[]"></textarea></label>';
-
+      html += '</select></label>' +
+              '<label>Conj/Nivel<input name="conj[]" type="text"></label>' +
+              '<label>Elementos<input name="elementos[]" type="text"></label>' +
+              '<label>Ensayos +<input name="positivos[]" type="number"></label>' +
+              '<label>Ensayos -<input name="negativos[]" type="number"></label>';
       div.innerHTML = html;
       cont.appendChild(div);
     }
 
-    function enviarDatos() {
-      var form = document.getElementById('sessionForm');
-      var fd = new FormData(form);
-      fd.append('action','saveSession');
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', scriptUrl, true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          alert('Sesión guardada correctamente');
-          form.reset();
-          document.getElementById('programasContainer').innerHTML = '';
-        } else {
-          alert('Error al guardar sesión');
-        }
-      };
-      xhr.onerror = function() { alert('Error de conexión'); };
-      xhr.send(fd);
-    }
-
-    document.getElementById('addProgramBtn').addEventListener('click', agregarProgramaForm);
-    document.getElementById('add-terapeuta-btn').addEventListener('click', function() {
-      var n = document.getElementById('new-terapeuta').value.trim(); if (n) saveConfig('terapeuta', n);
-    });
-    document.getElementById('add-estudiante-btn').addEventListener('click', function() {
-      var n = document.getElementById('new-estudiante').value.trim(); if (n) saveConfig('estudiante', n);
-    });
-    document.getElementById('add-programa-btn').addEventListener('click', function() {
-      var n = document.getElementById('new-programa').value.trim(); if (n) saveConfig('programa', n);
-    });
-    document.getElementById('sessionForm').addEventListener('submit', function(e) { e.preventDefault(); enviarDatos(); });
-    document.addEventListener('DOMContentLoaded', getConfig);
+    document.getElementById('addProgramBtn').addEventListener('click', agregarPrograma);
+    document.addEventListener('DOMContentLoaded', inicializar);
   </script>
 </body>
 </html>
