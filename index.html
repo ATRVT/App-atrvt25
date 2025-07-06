@@ -169,13 +169,60 @@
     }
 
     // 4) Agregar programa dinámico
-    function agregarProgramaForm(){
-      var c=document.getElementById('programasContainer'), div=document.createElement('div'); div.className='program';
-      var h='<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
-      programas.forEach(function(p){ h+='<option>'+p+'</option>'; }); h+='</select></label>';
-      div.innerHTML=h; c.appendChild(div);
-    }
+    function agregarProgramaForm() {
+  var cont = document.getElementById('programasContainer');
+  var div  = document.createElement('div');
+  div.className = 'program';
+  var html = '';
 
+  // 1) Selector de Programa
+  html += '<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
+  programas.forEach(function(p){
+    html += '<option>' + p + '</option>';
+  });
+  html += '</select></label>';
+
+  // 2) Conj/Nivel, Elementos, Ensayos
+  html += '<label>Conj/Nivel<input name="conj[]" type="text"></label>';
+  html += '<label>Elementos<input name="elementos[]" type="text"></label>';
+  html += '<label>Ensayos +<input name="positivos[]" type="number"></label>';
+  html += '<label>Ensayos -<input name="negativos[]" type="number"></label>';
+
+  // 3) Tipo de ayuda
+  html += '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
+  ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){
+    var attr = 'ayuda' + a.replace(/\s+/g,'');
+    html += '<label><input type="checkbox" name="' + attr + '[]"> ' + a + '</label>';
+  });
+  html += '</div></fieldset>';
+
+  // 4) Tipo de reforzador
+  html += '<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
+  ['Comestible','Sensorial','Social','Tangible','Economía','Actividad','Prueba/test'].forEach(function(r){
+    var attr = 'ref' + r.replace(/\s+|\\//g,'');
+    html += '<label><input type="checkbox" name="' + attr + '[]"> ' + r + '</label>';
+  });
+  html += '</div></fieldset>';
+
+  // 5) Tipo de reforzamiento
+  html += '<label>Tipo reforzamiento<select name="tipoRef[]">'
+       + '<option value="">-- elige reforzamiento --</option>'
+       + '<option>Continuo</option>'
+       + '<option>Variable</option>'
+       + '<option>Prueba/test</option>'
+       + '</select></label>';
+
+  // 6) Tiempos
+  html += '<label>Tiempo colegio<input name="tiempoColegio[]" type="time"></label>';
+  html += '<label>Tiempo papás<input name="tiempoPapas[]" type="time"></label>';
+
+  // 7) Textareas
+  html += '<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>';
+  html += '<label>Comentario<textarea name="comentario[]"></textarea></label>';
+
+  div.innerHTML = html;
+  cont.appendChild(div);
+}
     // 5) Guardar sesión
     function enviarDatos(){
       var f=document.getElementById('sessionForm'), fd=new FormData(f);
