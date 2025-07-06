@@ -22,23 +22,19 @@
 </head>
 <body>
   <h1>ATRÉVETE</h1>
-
   <form id="sessionForm">
     <label for="terapeuta">Terapeuta</label>
     <select id="terapeuta" name="terapeuta">
       <option value="">-- selecciona terapeuta --</option>
     </select>
-
     <label for="estudiante">Estudiante</label>
     <select id="estudiante" name="estudiante">
       <option value="">-- selecciona estudiante --</option>
     </select>
-
     <div id="programasContainer"></div>
     <button type="button" id="addProgramBtn">+ Agregar Programa</button>
     <button type="submit">Guardar Sesión</button>
   </form>
-
   <div class="config-section">
     <h2>⚙️ Configuración</h2>
     <fieldset>
@@ -60,11 +56,9 @@
       <input type="button" id="add-programa-btn" value="Añadir programa">
     </fieldset>
   </div>
-
   <script>
     var scriptUrl = 'https://script.google.com/macros/s/AKfycbwcUJL_6IOB7C_d2vvZmtKntyRfdbYnZfJYVMxT_MyE6SPTMwjmHP7n-1cXMNbf8j20Xg/exec';
-
-    // Listas por defecto
+    // Listas por defecto completas
     var defaultTerapeutas = [
       "Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S",
       "Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"
@@ -112,18 +106,19 @@
       "Tacto puro números","Tacto vestimenta","Tactos sensoriales","Tactos situaciones","Tactos varios","Tiempo Colegio",
       "Toma de perspectiva","Tracking visual"
     ];
-
     var terapeutas = [], estudiantes = [], programas = [];
-
     function getConfig() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', scriptUrl + '?action=getConfig', true);
       xhr.onload = function() {
         if (xhr.status === 200) {
           var cfg = JSON.parse(xhr.responseText);
-          terapeutas = (cfg.terapeutas && cfg.terapeutas.length) ? cfg.terapeutas : defaultTerapeutas;
-          estudiantes = (cfg.estudiantes && cfg.estudiantes.length) ? cfg.estudiantes : defaultEstudiantes;
-          programas   = (cfg.programas && cfg.programas.length)   ? cfg.programas   : defaultProgramas;
+          terapeutas = (cfg.terapeutas && cfg.terapeutas.length)
+            ? cfg.terapeutas : defaultTerapeutas;
+          estudiantes = (cfg.estudiantes && cfg.estudiantes.length)
+            ? cfg.estudiantes : defaultEstudiantes;
+          programas =   (cfg.programas && cfg.programas.length)
+            ? cfg.programas   : defaultProgramas;
         } else {
           terapeutas = defaultTerapeutas;
           estudiantes = defaultEstudiantes;
@@ -139,60 +134,49 @@
       };
       xhr.send();
     }
-
     function saveConfig(type, name, remove) {
       var xhr = new XMLHttpRequest();
       var params = 'action=saveConfig&type=' + type + '&name=' + encodeURIComponent(name);
       if (remove) params += '&remove=true';
-      xhr.open('POST', scriptUrl, true);
-      xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      xhr.open('POST', scriptUrl, true); xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
       xhr.onload = function() { if (xhr.status===200) getConfig(); else alert('Error al guardar configuración'); };
       xhr.send(params);
     }
-
     function refreshDropdown(id, items, placeholder) {
       var sel = document.getElementById(id);
       sel.innerHTML = '<option value="">' + placeholder + '</option>';
       for (var i=0; i<items.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = items[i]; opt.text = items[i]; sel.add(opt);
+        var opt = document.createElement('option'); opt.value = items[i]; opt.text = items[i]; sel.add(opt);
       }
     }
-
     function refreshAll() {
-      refreshDropdown('terapeuta','-- selecciona terapeuta --', terapeutas);
-      refreshDropdown('estudiante','-- selecciona estudiante --', estudiantes);
-      var lt = document.getElementById('list-terapeutas'); lt.innerHTML='';
-      for (var i=0; i<terapeutas.length; i++) addConfigItem(lt,'terapeuta',terapeutas[i]);
-      var le = document.getElementById('list-estudiantes'); le.innerHTML='';
-      for (i=0; i<estudiantes.length; i++) addConfigItem(le,'estudiante',estudiantes[i]);
-      var lp = document.getElementById('list-programas'); lp.innerHTML='';
-      for (i=0; i<programas.length; i++) addConfigItem(lp,'programa',programas[i]);
+      refreshDropdown('terapeuta', terapeutas, '-- selecciona terapeuta --');
+      refreshDropdown('estudiante', estudiantes, '-- selecciona estudiante --');
+      document.getElementById('list-terapeutas').innerHTML = '';
+      for (var i=0; i<terapeutas.length; i++) addConfigItem('list-terapeutas','terapeuta',terapeutas[i]);
+      document.getElementById('list-estudiantes').innerHTML = '';
+      for (i=0; i<estudiantes.length; i++) addConfigItem('list-estudiantes','estudiante',estudiantes[i]);
+      document.getElementById('list-programas').innerHTML = '';
+      for (i=0; i<programas.length; i++) addConfigItem('list-programas','programa',programas[i]);
     }
-
-    function addConfigItem(container,type,name) {
+    function addConfigItem(containerId,type,name) {
+      var container = document.getElementById(containerId);
       var d = document.createElement('div'); d.className='list-item';
       var span = document.createElement('span'); span.textContent = name;
       var btn = document.createElement('button'); btn.className='delete-btn'; btn.textContent='Eliminar';
       (function(t,n){ btn.onclick=function(){ if(confirm('Eliminar '+n+'?')) saveConfig(t,n,true); };})(type,name);
-      d.appendChild(span); d.appendChild(btn);
-      container.appendChild(d);
+      d.appendChild(span); d.appendChild(btn); container.appendChild(d);
     }
-
     function agregarProgramaForm() {
       var cont = document.getElementById('programasContainer');
       var div = document.createElement('div'); div.className='program';
       var opts = '<option value="">-- elige programa --</option>';
       for (var k=0; k<programas.length; k++) opts += '<option>'+programas[k]+'</option>';
       div.innerHTML =
-        '<label>Programa<select name="programa[]">'+opts+'</select></label>'+ 
-        '<label>Conj/Nivel<input name="conj[]" type="text"></label>'+ 
-        '<label>Elementos<input name="elementos[]" type="text"></label>'+ 
-        '<label>Ensayos +<input name="positivos[]" type="number"></label>'+ 
-        '<label>Ensayos -<input name="negativos[]" type="number"></label>'+ 
-        '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">'+
-          '<label><input type="checkbox" name="ayudaNinguna[]"> Ninguna</label>'+ 
-          '<label><input type="checkbox" name="ayudaVerbal[]"> Verbal</label>'+ 
-          '<label><input type="checkbox" name="ayudaGestual[]"> Gestual</label>'+ 
-          '<label><input type="checkbox" name="ayudaFparcial[]"> Física parcial</label>'+ 
-          '<label><input type="checkbox" name="ayudaFtotal[]"> Física total</label>...
+        '<label>Programa<select name="programa[]">'+opts+'</select></label>'+     
+        '<label>Conj/Nivel<input name="conj[]" type="text"></label>'+          
+        '<label>Elementos<input name="elementos[]" type="text"></label>'+      
+        '<label>Ensayos +<input name="positivos[]" type="number"></label>'+      
+        '<label>Ensayos -<input name="negativos[]" type="number"></label>'+      
+        '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">'+    
+          '<label><input type="checkbox" name="ayudaNinguna[]"> Ninguna</label>'+  
