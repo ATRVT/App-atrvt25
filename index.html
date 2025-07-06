@@ -6,7 +6,7 @@
   <title>ATRÉVETE</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:10px; }
-    h1, h2 { margin-top:20px; }
+    h1, h2 { margin-top:20px; font-weight: bold; }
     label, legend { display:block; margin-top:10px; font-size:16px; }
     select, input[type="text"], input[type="number"], input[type="time"], textarea, input[type="button"], button {
       width:100%; font-size:16px; padding:10px; box-sizing:border-box; margin-top:5px;
@@ -22,19 +22,23 @@
 </head>
 <body>
   <h1>ATRÉVETE</h1>
+
   <form id="sessionForm">
     <label for="terapeuta">Terapeuta</label>
     <select id="terapeuta" name="terapeuta">
       <option value="">-- selecciona terapeuta --</option>
     </select>
+
     <label for="estudiante">Estudiante</label>
     <select id="estudiante" name="estudiante">
       <option value="">-- selecciona estudiante --</option>
     </select>
+
     <div id="programasContainer"></div>
     <button type="button" id="addProgramBtn">+ Agregar Programa</button>
     <button type="submit">Guardar Sesión</button>
   </form>
+
   <div class="config-section">
     <h2>⚙️ Configuración</h2>
     <fieldset>
@@ -56,9 +60,11 @@
       <input type="button" id="add-programa-btn" value="Añadir programa">
     </fieldset>
   </div>
+
   <script>
     var scriptUrl = 'https://script.google.com/macros/s/AKfycbwcUJL_6IOB7C_d2vvZmtKntyRfdbYnZfJYVMxT_MyE6SPTMwjmHP7n-1cXMNbf8j20Xg/exec';
-    // Listas por defecto completas
+
+    // Listas por defecto completas:
     var defaultTerapeutas = [
       "Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S",
       "Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"
@@ -74,51 +80,28 @@
     ];
     var defaultProgramas = [
       "Agilidad mental","Aleatorio acciones","Aleatorio búsqueda de objetos","Aleatorio emociones","Aleatorio dictado números",
-      "Aleatorio ecoicas fonemas","Aleatorio intraverbales","Aleatorio ecoicas palabras","Aleatorio ecoicas silabas",
-      "Aleatorio escolares","Aleatorio espejo","Aleatorio igualación auditiva","Aleatorio igualación 3D","Aleatorio imitación con objeto",
+      "Aleatorio ecoicas fonemas","Aleatorio intraverbales","Aleatorio ecoicas palabras","Aleatorio ecoicas silabas","Aleatorio escolares",
+      "Aleatorio espejo","Aleatorio igualación auditiva","Aleatorio igualación 3D","Aleatorio imitación con objeto",
       "Aleatorio imitación c/s objeto","Aleatorio imitación sin objeto","Aleatorio lectura comprensiva","Aleatorio lectura palabras",
       "Aleatorio lectura silábica","Aleatorio partes del cuerpo","Aleatorio seguimiento instrucciones c/objeto",
       "Aleatorio seguimiento instrucciones s/objeto","Aleatorio tactos animales","Aleatorio tactos comida","Aleatorio tactos letras",
-      "Aleatorio tactos números","Aleatorio tactos objetos","Aprestamiento","Asociaciones","Autonomía","Autoclíticos","Búsqueda de objetos",
-      "Categorías","Cálculo mental","Colorear","Comida","Computación","Conceptos matemáticos","Condicionamiento caras",
-      "Condicionamiento colorear","Condicionamiento encajables","Condicionamiento en mesa","Condicionamiento paleta",
-      "Condicionamiento juegos","Condicionamiento libros","Condicionamiento libros en el suelo","Condicionamiento plasticina",
-      "Condicionamiento saltar","Condicionamiento témperas","Condicionamiento rompecabezas","Contacto visual","Conteo","Control postural",
-      "Copia","Copia bisilábica","Corte de cabello","Deícticos","Deletreo","Dictado","Dictado letras","Dictado números",
-      "Dictado teclado","Dictado silabas","Discriminación","Discriminación auditiva","Discriminación y lectura de palabras",
-      "Ecoica fonemas","Ecoica frases","Ecoica oraciones","Ecoica palabras","Ecoica secuencias","Ecoica silabas",
-      "Entrenamiento a padres","Escritura","Espera","Esperar turno","Flexibilidad","Habilidades numéricas","Historias",
-      "Hojas de trabajo","Igualación 2D/2D","Igualación 2D/3D","Igualación 3D/3D","Igualación animales","Igualación auditiva",
-      "Igualación categorías","Igualación comida","Igualación de colores","Igualación letras","Igualación números","Igualación objetos",
-      "Igualación palabras","Igualación partes del cuerpo","Igualación silabas","Igualación táctil","Igualación texto/foto",
-      "Imitación c/s objeto","Imitación con objeto","Imitación en espejo","Imitación sin objeto","Interacción juguetes",
-      "Interacción social","Intercambio de reforzadores","Intraverbales","Lavado de dientes","Lectura comprensiva","Lectura global",
-      "Lectura oraciones","Lectura palabras","Lectura silábica","Mandos","Mandos actividades","Mandos aversivos","Mandos comestibles",
-      "Mandos juguetes","Mandos otros lugares","Matemáticas","Motor","Motricidad fina","Multiplicaciones","Número/numeral",
-      "Opuestos","Oral motor","Partes del cuerpo","Praxias","Pre-escritura","Pre-escritura silabas","Pre-lectura","Pronombres",
-      "Recortar","Reloj","Respuesta al nombre","Restas","Rimas","Rompecabezas","Secuencias","Seguimiento instrucciones c/s objeto",
-      "Seguimiento instrucciones con objeto","Seguimiento instrucciones escritas","Seguimiento instrucciones sin objeto",
-      "Seguimiento de instrucciones vocales","Selección 2D","Selección 3D","Selección acción","Selección animales","Selección colores",
-      "Selección comida","Selección con características","Selección escolares","Selección fonemas","Selección letras","Selección números",
-      "Selección objetos","Selección palabras","Selección partes del cuerpo","Selección silabas","Selección varios","Señalar cuaderno",
-      "Sumas","Tacto acciones","Tacto animales","Tacto colores","Tacto comida","Tacto emociones","Tacto escolares",
-      "Tacto impuro números","Tacto letras","Tactos lugares","Tacto números","Tacto objetos","Tacto personas","Tacto profesiones",
-      "Tacto puro números","Tacto vestimenta","Tactos sensoriales","Tactos situaciones","Tactos varios","Tiempo Colegio",
-      "Toma de perspectiva","Tracking visual"
-    ];
+      "Aleatorio tactos números","Aleatorio tactos objetos","Aprestamiento","Asociaciones","Autonomía","Autoclíticos",
+      "Búsqueda de objetos","Categorías","Cálculo mental","Colorear","Comida","Computación","Conceptos matemáticos",
+      "Condicionamiento caras","Condicionamiento colorear","Condicionamiento encajables","Condicionamiento en mesa",
+      "Condicionamiento paleta","Condicionamiento juegos","Condicionamiento libros","Condicionamiento libros en el suelo",
+      "Condicionamiento plasticina","Condicionamiento saltar","Condicionamiento témperas","Condicionamiento rompecabezas",
+      "Contacto visual","Conteo","Control postural","Copia","Copia bisilábica","Corte de cabello","Deícticos","Deletré"];
     var terapeutas = [], estudiantes = [], programas = [];
+
     function getConfig() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', scriptUrl + '?action=getConfig', true);
       xhr.onload = function() {
         if (xhr.status === 200) {
           var cfg = JSON.parse(xhr.responseText);
-          terapeutas = (cfg.terapeutas && cfg.terapeutas.length)
-            ? cfg.terapeutas : defaultTerapeutas;
-          estudiantes = (cfg.estudiantes && cfg.estudiantes.length)
-            ? cfg.estudiantes : defaultEstudiantes;
-          programas =   (cfg.programas && cfg.programas.length)
-            ? cfg.programas   : defaultProgramas;
+          terapeutas = cfg.terapeutas && cfg.terapeutas.length ? cfg.terapeutas : defaultTerapeutas;
+          estudiantes = cfg.estudiantes && cfg.estudiantes.length ? cfg.estudiantes : defaultEstudiantes;
+          programas   = cfg.programas   && cfg.programas.length   ? cfg.programas   : defaultProgramas;
         } else {
           terapeutas = defaultTerapeutas;
           estudiantes = defaultEstudiantes;
@@ -134,14 +117,17 @@
       };
       xhr.send();
     }
+
     function saveConfig(type, name, remove) {
       var xhr = new XMLHttpRequest();
       var params = 'action=saveConfig&type=' + type + '&name=' + encodeURIComponent(name);
       if (remove) params += '&remove=true';
-      xhr.open('POST', scriptUrl, true); xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      xhr.open('POST', scriptUrl, true);
+      xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
       xhr.onload = function() { if (xhr.status===200) getConfig(); else alert('Error al guardar configuración'); };
       xhr.send(params);
     }
+
     function refreshDropdown(id, items, placeholder) {
       var sel = document.getElementById(id);
       sel.innerHTML = '<option value="">' + placeholder + '</option>';
@@ -149,34 +135,9 @@
         var opt = document.createElement('option'); opt.value = items[i]; opt.text = items[i]; sel.add(opt);
       }
     }
+
     function refreshAll() {
       refreshDropdown('terapeuta', terapeutas, '-- selecciona terapeuta --');
       refreshDropdown('estudiante', estudiantes, '-- selecciona estudiante --');
       document.getElementById('list-terapeutas').innerHTML = '';
-      for (var i=0; i<terapeutas.length; i++) addConfigItem('list-terapeutas','terapeuta',terapeutas[i]);
-      document.getElementById('list-estudiantes').innerHTML = '';
-      for (i=0; i<estudiantes.length; i++) addConfigItem('list-estudiantes','estudiante',estudiantes[i]);
-      document.getElementById('list-programas').innerHTML = '';
-      for (i=0; i<programas.length; i++) addConfigItem('list-programas','programa',programas[i]);
-    }
-    function addConfigItem(containerId,type,name) {
-      var container = document.getElementById(containerId);
-      var d = document.createElement('div'); d.className='list-item';
-      var span = document.createElement('span'); span.textContent = name;
-      var btn = document.createElement('button'); btn.className='delete-btn'; btn.textContent='Eliminar';
-      (function(t,n){ btn.onclick=function(){ if(confirm('Eliminar '+n+'?')) saveConfig(t,n,true); };})(type,name);
-      d.appendChild(span); d.appendChild(btn); container.appendChild(d);
-    }
-    function agregarProgramaForm() {
-      var cont = document.getElementById('programasContainer');
-      var div = document.createElement('div'); div.className='program';
-      var opts = '<option value="">-- elige programa --</option>';
-      for (var k=0; k<programas.length; k++) opts += '<option>'+programas[k]+'</option>';
-      div.innerHTML =
-        '<label>Programa<select name="programa[]">'+opts+'</select></label>'+     
-        '<label>Conj/Nivel<input name="conj[]" type="text"></label>'+          
-        '<label>Elementos<input name="elementos[]" type="text"></label>'+      
-        '<label>Ensayos +<input name="positivos[]" type="number"></label>'+      
-        '<label>Ensayos -<input name="negativos[]" type="number"></label>'+      
-        '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">'+    
-          '<label><input type="checkbox" name="ayudaNinguna[]"> Ninguna</label>'+  
+      terape
