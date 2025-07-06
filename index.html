@@ -169,17 +169,19 @@
     }
 
     // 4) Agregar programa dinámico
-    function agregarProgramaForm() {
+   function agregarProgramaForm() {
   var cont = document.getElementById('programasContainer');
   var div  = document.createElement('div');
   div.className = 'program';
+  // construimos el HTML paso a paso en una variable
   var html = '';
 
-  // 1) Selector de Programa
-  html += '<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
-  programas.forEach(function(p){
-    html += '<option>' + p + '</option>';
-  });
+  // 1) Programa
+  html += '<label>Programa<select name="programa[]">';
+  html += '<option value="">-- elige programa --</option>';
+  for (var i = 0; i < programas.length; i++) {
+    html += '<option>' + programas[i] + '</option>';
+  }
   html += '</select></label>';
 
   // 2) Conj/Nivel, Elementos, Ensayos
@@ -190,18 +192,22 @@
 
   // 3) Tipo de ayuda
   html += '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
-  ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){
+  var ayudas = ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'];
+  for (i = 0; i < ayudas.length; i++) {
+    var a = ayudas[i];
     var attr = 'ayuda' + a.replace(/\s+/g,'');
     html += '<label><input type="checkbox" name="' + attr + '[]"> ' + a + '</label>';
-  });
+  }
   html += '</div></fieldset>';
 
-  // 4) Tipo de reforzador
+  // 4) Tipo de reforzador (incluye Prueba/test)
   html += '<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
-  ['Comestible','Sensorial','Social','Tangible','Economía','Actividad','Prueba/test'].forEach(function(r){
-    var attr = 'ref' + r.replace(/\s+|\\//g,'');
-    html += '<label><input type="checkbox" name="' + attr + '[]"> ' + r + '</label>';
-  });
+  var refz = ['Comestible','Sensorial','Social','Tangible','Economía','Actividad','Prueba/test'];
+  for (i = 0; i < refz.length; i++) {
+    var r = refz[i];
+    var attrR = 'ref' + r.replace(/\s+|\\//g,'');
+    html += '<label><input type="checkbox" name="' + attrR + '[]"> ' + r + '</label>';
+  }
   html += '</div></fieldset>';
 
   // 5) Tipo de reforzamiento
@@ -220,40 +226,7 @@
   html += '<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>';
   html += '<label>Comentario<textarea name="comentario[]"></textarea></label>';
 
+  // insertamos el HTML generado
   div.innerHTML = html;
   cont.appendChild(div);
 }
-    // 5) Guardar sesión
-    function enviarDatos(){
-      var f=document.getElementById('sessionForm'), fd=new FormData(f);
-      fd.append('action','saveSession'); var x=new XMLHttpRequest(); x.open('POST',scriptUrl,true);
-      x.onload=function(){ if(x.status===200) alert('Sesión guardada'), f.reset(),document.getElementById('programasContainer').innerHTML='' ;
-        else alert('Error sesión'); };
-      x.onerror=function(){ alert('Error conexión'); };
-      x.send(fd);
-    }
-
-    // 6) Cambio de pestañas
-    function showSection(idTab){
-      document.getElementById('tab-form').classList.toggle('active', idTab==='form');
-      document.getElementById('tab-config').classList.toggle('active', idTab==='config');
-      document.getElementById('section-form').classList.toggle('active', idTab==='form');
-      document.getElementById('section-config').classList.toggle('active', idTab==='config');
-    }
-
-    // 7) Listeners
-    document.getElementById('addProgramBtn').onclick=agregarProgramaForm;
-    document.getElementById('add-terapeuta-btn').onclick=function(){ var n=document.getElementById('new-terapeuta').value.trim(); if(n) saveConfig('terapeuta',n); };
-    document.getElementById('add-estudiante-btn').onclick=function(){ var n=document.getElementById('new-estudiante').value.trim(); if(n) saveConfig('estudiante',n); };
-    document.getElementById('add-programa-btn').onclick=function(){ var n=document.getElementById('new-programa').value.trim(); if(n) saveConfig('programa',n); };
-    document.getElementById('sessionForm').onsubmit=function(e){ e.preventDefault(); enviarDatos(); };
-    document.getElementById('tab-form').onclick=function(){ showSection('form'); };
-    document.getElementById('tab-config').onclick=function(){ showSection('config'); };
-
-    // 8) Inicialización
-    document.addEventListener('DOMContentLoaded', function(){
-      fallback(); poblarDropdowns(); renderAllConfig(); showSection('form'); getConfig();
-    });
-  </script>
-</body>
-</html>
