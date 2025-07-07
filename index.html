@@ -108,16 +108,24 @@
 
     // Cargar configuración inicial
     function loadConfig() {
-      apiGet('action=getConfig', function(err, res) {
-        if (!err && res.status === 'success') {
-          terapeutas = res.config.terapeutas;
-          estudiantes = res.config.estudiantes;
-          programas   = res.config.programas;
-        }
-        populateSessionDropdowns();
-        renderConfigLists();
+  apiGet('action=getConfig', function(err, res) {
+    if (!err && res.status === 'success') {
+      // 1. Orden “natural” case-insensitive
+      terapeutas  = res.config.terapeutas.slice().sort(function(a, b) {
+        return a.localeCompare(b, 'es', { sensitivity: 'base' });
+      });
+      estudiantes = res.config.estudiantes.slice().sort(function(a, b) {
+        return a.localeCompare(b, 'es', { sensitivity: 'base' });
+      });
+      programas   = res.config.programas.slice().sort(function(a, b) {
+        return a.localeCompare(b, 'es', { sensitivity: 'base' });
       });
     }
+    // 2. Refresca dropdowns y listas
+    populateSessionDropdowns();
+    renderConfigLists();
+  });
+}
 
     // Poblar dropdowns de sesión
     function populateSessionDropdowns() {
