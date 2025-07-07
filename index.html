@@ -101,12 +101,21 @@
     function loadConfig() {
   apiGet('action=getConfig', function(err, res) {
     if (!err && res.status === 'success') {
-      // Ordenar alfabéticamente cada lista antes de mostrarla
-      terapeutas = res.config.terapeutas.slice().sort();
-      estudiantes = res.config.estudiantes.slice().sort();
-      programas   = res.config.programas.slice().sort();
+      // Ordenar alfabéticamente sin diferenciar mayúsculas/minúsculas
+      terapeutas  = res.config.terapeutas.slice()
+        .sort(function(a, b) {
+          return a.localeCompare(b, 'es', { sensitivity: 'base' });
+        });
+      estudiantes = res.config.estudiantes.slice()
+        .sort(function(a, b) {
+          return a.localeCompare(b, 'es', { sensitivity: 'base' });
+        });
+      programas    = res.config.programas.slice()
+        .sort(function(a, b) {
+          return a.localeCompare(b, 'es', { sensitivity: 'base' });
+        });
     }
-    // Actualizar dropdowns y listas
+    // Actualiza dropdowns y listas
     populateSessionDropdowns();
     renderConfigLists();
   });
