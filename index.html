@@ -22,16 +22,24 @@
     fieldset { border:1px solid #ccc; margin-top:15px; padding:10px; }
     .checkbox-group { display:flex; flex-wrap:wrap; margin-top:5px; }
     .checkbox-group label { width:48%; }
-    .list-item { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      padding: 4px 0;   /* espacio interno mínimo */
+      border: none;     /* eliminar bordes redundantes */
+    }
     .delete-btn {
       background: transparent;
       color: #e74c3c;
       border: 1px solid #e74c3c;
-      padding: 2px 6px;
+      padding: 2px 8px;   /* más horizontal, menos vertical */
       font-size: 14px;
       cursor: pointer;
       border-radius: 4px;
       flex-shrink: 0;
+      width: auto;        /* asegúrate de que el botón no ocupe todo el ancho */
     }
   </style>
 </head>
@@ -108,24 +116,16 @@
 
     // Cargar configuración inicial
     function loadConfig() {
-  apiGet('action=getConfig', function(err, res) {
-    if (!err && res.status === 'success') {
-      // 1. Orden “natural” case-insensitive
-      terapeutas  = res.config.terapeutas.slice().sort(function(a, b) {
-        return a.localeCompare(b, 'es', { sensitivity: 'base' });
-      });
-      estudiantes = res.config.estudiantes.slice().sort(function(a, b) {
-        return a.localeCompare(b, 'es', { sensitivity: 'base' });
-      });
-      programas   = res.config.programas.slice().sort(function(a, b) {
-        return a.localeCompare(b, 'es', { sensitivity: 'base' });
+      apiGet('action=getConfig', function(err, res) {
+        if (!err && res.status === 'success') {
+          terapeutas = res.config.terapeutas;
+          estudiantes = res.config.estudiantes;
+          programas   = res.config.programas;
+        }
+        populateSessionDropdowns();
+        renderConfigLists();
       });
     }
-    // 2. Refresca dropdowns y listas
-    populateSessionDropdowns();
-    renderConfigLists();
-  });
-}
 
     // Poblar dropdowns de sesión
     function populateSessionDropdowns() {
