@@ -2,24 +2,22 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ATRÉVETE</title>
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:10px; }
-    h1 { font-size:24px; margin-bottom:20px; }
+    body { font-family: Arial, sans-serif; padding:10px; }
+    h1 { margin-bottom:20px; }
     .tabs { display:flex; margin-bottom:10px; }
-    .tab { flex:1; padding:10px; text-align:center; cursor:pointer; background:#f0f0f0; border:1px solid #ccc; }
-    .tab.active { background:#fff; border-bottom:none; font-weight:bold; }
+    .tab { flex:1; padding:8px; text-align:center; cursor:pointer; border:1px solid #ccc; background:#f0f0f0; }
+    .tab.active { background:#fff; font-weight:bold; border-bottom:none; }
     .section { display:none; }
     .section.active { display:block; }
-    label, legend { display:block; margin-top:10px; font-size:16px; }
-    select, input, textarea, button { width:100%; font-size:16px; padding:8px; box-sizing:border-box; margin-top:5px; }
-    button { height:48px; margin-top:15px; }
-    .program { border:1px solid #ccc; margin-top:10px; padding:10px; }
-    fieldset { border:1px solid #ccc; margin-top:15px; padding:10px; }
-    .checkbox-group { display:flex; flex-wrap:wrap; margin-top:5px; }
-    .checkbox-group label { width:48%; }
-    .delete-btn { background:transparent; color:#e74c3c; border:1px solid #e74c3c; padding:5px 8px; cursor:pointer; border-radius:4px; }
+    fieldset { margin-bottom:15px; padding:10px; border:1px solid #ccc; }
+    label, legend { display:block; margin-top:8px; }
+    input, select, button { width:100%; padding:8px; margin-top:5px; box-sizing:border-box; }
+    button { height:44px; }
+    .list-item { display:flex; justify-content:space-between; align-items:center; padding:4px 0; }
+    .delete-btn { background:transparent; border:1px solid #e74c3c; color:#e74c3c; padding:4px 8px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -29,183 +27,139 @@
     <div id="tab-config" class="tab">Configuración</div>
   </div>
 
-  <!-- Sesión -->
+  <!-- Sección Sesión -->
   <div id="section-form" class="section active">
-    <form id="sessionForm">
-      <label for="terapeuta">Terapeuta</label>
-      <select id="terapeuta" name="terapeuta"><option value="">-- selecciona terapeuta --</option></select>
-      <label for="estudiante">Estudiante</label>
-      <select id="estudiante" name="estudiante"><option value="">-- selecciona estudiante --</option></select>
-      <div id="programasContainer"></div>
-      <button type="button" id="addProgramBtn">+ Agregar Programa</button>
-      <button type="submit">Guardar Sesión</button>
-    </form>
+    <!-- Aquí tu formulario de sesiones -->
+    <p>Formulario de sesión (mantener el existente).</p>
   </div>
 
-  <!-- Configuración -->
+  <!-- Sección Configuración -->
   <div id="section-config" class="section">
-    <h2>⚙️ Configuración</h2>
     <fieldset>
       <legend>Terapeutas</legend>
-      <button type="button" id="toggle-terapeutas">Mostrar Terapeutas</button>
+      <button id="toggle-terapeutas" type="button">Mostrar Terapeutas</button>
       <div id="list-terapeutas" style="display:none; margin-top:10px;"></div>
-      <input type="text" id="new-terapeuta" placeholder="Nombre nuevo terapeuta">
+      <input id="new-terapeuta" placeholder="Nuevo terapeuta">
     </fieldset>
     <fieldset>
       <legend>Estudiantes</legend>
-      <button type="button" id="toggle-estudiantes">Mostrar Estudiantes</button>
+      <button id="toggle-estudiantes" type="button">Mostrar Estudiantes</button>
       <div id="list-estudiantes" style="display:none; margin-top:10px;"></div>
-      <input type="text" id="new-estudiante" placeholder="Nombre nuevo estudiante">
+      <input id="new-estudiante" placeholder="Nuevo estudiante">
     </fieldset>
     <fieldset>
       <legend>Programas</legend>
-      <button type="button" id="toggle-programas">Mostrar Programas</button>
-      <div id="list-programas" style="display:none; max-height:150px; overflow:auto; margin-top:10px;"></div>
-      <input type="text" id="new-programa" placeholder="Nombre nuevo programa">
+      <button id="toggle-programas" type="button">Mostrar Programas</button>
+      <div id="list-programas" style="display:none; margin-top:10px;"></div>
+      <input id="new-programa" placeholder="Nuevo programa">
     </fieldset>
-
-    <button type="button" id="save-config-btn">Guardar Configuración</button>
+    <button id="save-config-btn" type="button">Guardar Configuración</button>
   </div>
 
   <script>
-    // 1) Tu URL real de la Web App (Apps Script)
+    // URL de tu Web App de Apps Script:
     var scriptUrl = 'https://script.google.com/macros/s/AKfycbxpuRuQqYozRLDdkVr-sCWrzZ1_TxSl_Jdrr_8z8Sk_GKaSxYDid2wzV3v4KXhqv79k/exec';
 
-    // 2) Datos por defecto
-    var defaultTerapeutas = ["Adriana J","Celeste M","Cinthia","Dani R","Estefanie","Gaby A","Gaby X","Geovanna","Jacky S","Jessi G","Jessica P","Luisa D","Melissa P","Meli Peña","Paty","Rocío M","Suly S","Tere M","Zamy"];
-    var defaultEstudiantes = ["Abraham Chapetón","Adolfo Hernández","Adrián","Adriana García","Amber Lafage","Ana María","Andrei González","Andrés Cruz","Ángel Gabriel","Ángel Gudiel","Bruno Arévalo","Bruno Torres","Christopher Gamas","Cristian Molina","Daniel Samayoa","Diego Lima","Diego Pérez","Dylan Ceijas","Ethan Forno","Fabián Álvarez","Gabriel Ruíz","Ivanna Recinos","Javier Maldonado","Jorge Sánchez","José Miguel López","Julio González","Luis André Arriola","Luis Felipe Guzmán","Mariana Solís","Mateo Toribio","Mathías Mendoza","Matías Contreras","Matías Guaré","Matías Osorio","Miranda Martínez","Nicholas Mancilla","Pablo Vielman","René Torres","Rodrigo Chigüichon","Santiago Ruíz","Tier Xitumul","Xander García"];
-    var defaultProgramas = [ /* lista completa de 180 programas */ ];
-
-    var terapeutas = [], estudiantes = [], programas = [];
-
-    // Poblar dropdowns
-    function poblarDropdowns() {
-      var selT = document.getElementById('terapeuta'), selE = document.getElementById('estudiante');
-      selT.innerHTML = '<option value="">-- selecciona terapeuta --</option>';
-      selE.innerHTML = '<option value="">-- selecciona estudiante --</option>';
-      terapeutas.forEach(function(n){ var o = document.createElement('option'); o.value = o.text = n; selT.add(o); });
-      estudiantes.forEach(function(n){ var o = document.createElement('option'); o.value = o.text = n; selE.add(o); });
-    }
-
-    // Leer configuración del servidor
-    function getConfig() {
+    // Llamada genérica GET
+    function apiGet(params, cb) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', scriptUrl + '?action=getConfig', true);
+      xhr.open('GET', scriptUrl + '?' + params, true);
       xhr.onload = function() {
         if (xhr.status === 200) {
-          try {
-            var resp = JSON.parse(xhr.responseText), cfg = resp.config || {};
-            terapeutas = cfg.terapeutas.length ? cfg.terapeutas : defaultTerapeutas.slice();
-            estudiantes = cfg.estudiantes.length ? cfg.estudiantes : defaultEstudiantes.slice();
-            programas   = cfg.programas.length   ? cfg.programas   : defaultProgramas.slice();
-          } catch (e) {
-            terapeutas = defaultTerapeutas.slice(); estudiantes = defaultEstudiantes.slice(); programas = defaultProgramas.slice();
-          }
-        } else {
-          terapeutas = defaultTerapeutas.slice(); estudiantes = defaultEstudiantes.slice(); programas = defaultProgramas.slice();
-        }
-        poblarDropdowns(); renderConfigLists();
+          try { cb(null, JSON.parse(xhr.responseText)); }
+          catch(e) { cb(e); }
+        } else cb(new Error('HTTP ' + xhr.status));
       };
-      xhr.onerror = xhr.onload;
+      xhr.onerror = function() { cb(new Error('Network error')); };
       xhr.send();
     }
 
+    // Variables de configuración
+    var terapeutas = [], estudiantes = [], programas = [];
+
+    // Carga inicial
+    function loadConfig() {
+      apiGet('action=getConfig', function(err, res) {
+        if (!err && res.status === 'success') {
+          terapeutas = res.config.terapeutas;
+          estudiantes = res.config.estudiantes;
+          programas   = res.config.programas;
+        }
+        renderConfigLists();
+      });
+    }
+
     // Renderizar listas en configuración
+    function renderList(id, type, arr) {
+      var container = document.getElementById(id);
+      container.innerHTML = '';
+      arr.forEach(function(name) {
+        var div = document.createElement('div'); div.className = 'list-item';
+        var span = document.createElement('span'); span.textContent = name;
+        var btn  = document.createElement('button'); btn.className = 'delete-btn'; btn.textContent = 'Eliminar';
+        btn.onclick = function() {
+          if (!confirm('Eliminar ' + name + '?')) return;
+          apiGet('action=saveConfig&type=' + type + '&name=' + encodeURIComponent(name) + '&remove=true', loadConfig);
+        };
+        div.appendChild(span);
+        div.appendChild(btn);
+        container.appendChild(div);
+      });
+    }
     function renderConfigLists() {
-      renderList('list-terapeutas','terapeuta',terapeutas);
-      renderList('list-estudiantes','estudiante',estudiantes);
-      renderList('list-programas','programa',programas);
-    }
-    function renderList(id,type,arr) {
-      var div = document.getElementById(id); div.innerHTML = '';
-      arr.forEach(function(name){
-        var item = document.createElement('div'); item.className='list-item';
-        var span = document.createElement('span'); span.textContent=name;
-        var btn  = document.createElement('button'); btn.className='delete-btn'; btn.textContent='Eliminar';
-        btn.onclick=function(){ if(confirm('Eliminar '+name+'?')) saveConfig(type,name,true); };
-        item.appendChild(span); item.appendChild(btn);
-        div.appendChild(item);
-      });
+      renderList('list-terapeutas', 'terapeuta', terapeutas);
+      renderList('list-estudiantes','estudiante', estudiantes);
+      renderList('list-programas','programa', programas);
     }
 
-    // Llamar a la API saveConfig
-    function saveConfig(type,name,remove,cb) {
-      var xhr = new XMLHttpRequest();
-      var params = 'action=saveConfig&type='+type+'&name='+encodeURIComponent(name)+(remove?'&remove=true':'');
-      xhr.open('POST', scriptUrl, true);
-      xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-      xhr.onload = function() { if (cb) cb(); else getConfig(); };
-      xhr.send(params);
-    }
-
-    // Botón único: Guardar Configuración
+    // Guardar nuevos ítems
     document.getElementById('save-config-btn').onclick = function() {
-  var t = document.getElementById('new-terapeuta').value.trim();
-  var e = document.getElementById('new-estudiante').value.trim();
-  var p = document.getElementById('new-programa').value.trim();
+      var t = document.getElementById('new-terapeuta').value.trim();
+      var e = document.getElementById('new-estudiante').value.trim();
+      var p = document.getElementById('new-programa').value.trim();
+      var count = 0;
+      function done() { if (--count <= 0) loadConfig(); }
+      if (t) { count++; apiGet('action=saveConfig&type=terapeuta&name=' + encodeURIComponent(t), done); }
+      if (e) { count++; apiGet('action=saveConfig&type=estudiante&name=' + encodeURIComponent(e), done); }
+      if (p) { count++; apiGet('action=saveConfig&type=programa&name=' + encodeURIComponent(p), done); }
+      document.getElementById('new-terapeuta').value = '';
+      document.getElementById('new-estudiante').value = '';
+      document.getElementById('new-programa').value = '';
+      if (count === 0) loadConfig();
+    };
 
-  if (t) saveConfig('terapeuta', t);
-  if (e) saveConfig('estudiante', e);
-  if (p) saveConfig('programa', p);
+    // Toggle mostrar/ocultar
+    document.getElementById('toggle-terapeutas').onclick = function() {
+      var d = document.getElementById('list-terapeutas');
+      d.style.display = d.style.display === 'none' ? 'block' : 'none';
+      this.textContent = d.style.display === 'block' ? 'Ocultar Terapeutas' : 'Mostrar Terapeutas';
+    };
+    document.getElementById('toggle-estudiantes').onclick = function() {
+      var d = document.getElementById('list-estudiantes');
+      d.style.display = d.style.display === 'none' ? 'block' : 'none';
+      this.textContent = d.style.display === 'block' ? 'Ocultar Estudiantes' : 'Mostrar Estudiantes';
+    };
+    document.getElementById('toggle-programas').onclick = function() {
+      var d = document.getElementById('list-programas');
+      d.style.display = d.style.display === 'none' ? 'block' : 'none';
+      this.textContent = d.style.display === 'block' ? 'Ocultar Programas' : 'Mostrar Programas';
+    };
 
-  // Después de 1s, recargamos listas y limpiamos inputs
-  setTimeout(function() {
-    getConfig();
-    document.getElementById('new-terapeuta').value = '';
-    document.getElementById('new-estudiante').value = '';
-    document.getElementById('new-programa').value = '';
-  }, 1000);
-};
-
-    // Programas dinámicos
-    function agregarProgramaForm() {
-      var cont = document.getElementById('programasContainer'), div = document.createElement('div'); div.className='program';
-      var html = '<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
-      programas.forEach(function(pr){ html+='<option value="'+pr+'">'+pr+'</option>'; });
-      html += '</select></label>'
-           +'<label>Conj/Nivel<input name="conj[]" type="text"></label>'
-           +'<label>Elementos<input name="elementos[]" type="text"></label>'
-           +'<label>Ensayos +<input name="positivos[]" type="number"></label>'
-           +'<label>Ensayos -<input name="negativos[]" type="number"></label>'
-           +'<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
-      ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){
-        var attr='ayuda'+a.replace(/\s+/g,'');
-        html+='<label><input type="checkbox" name="'+attr+'[]" value="'+a+'"> '+a+'</label>';
-      });
-      html+='</div></fieldset>'
-           +'<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
-      ['Comestible','Sensorial','Social','Tangible','Economía','Actividad','Prueba/test'].forEach(function(r){
-        var attr='ref'+r.replace(/\s+|\//g,'');
-        html+='<label><input type="checkbox" name="'+attr+'[]" value="'+r+'"> '+r+'</label>';
-      });
-      html+='</div></fieldset>'
-           +'<label>Tipo reforzamiento<select name="tipoRef[]"><option value="">-- elige reforzamiento --</option><option>Continuo</option><option>Variable</option><option>Prueba/test</option></select></label>'
-           +'<label>Tiempo colegio<input name="tiempoColegio[]" type="time"></label>'
-           +'<label>Tiempo papás<input name="tiempoPapas[]" type="time"></label>'
-           +'<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>'
-           +'<label>Comentario<textarea name="comentario[]"></textarea></label>';
-      div.innerHTML=html; cont.appendChild(div);
+    // Pestañas
+    function show(tab) {
+      document.getElementById('tab-form').classList.toggle('active', tab === 'form');
+      document.getElementById('tab-config').classList.toggle('active', tab === 'config');
+      document.getElementById('section-form').classList.toggle('active', tab === 'form');
+      document.getElementById('section-config').classList.toggle('active', tab === 'config');
     }
+    document.getElementById('tab-form').onclick = function() { show('form'); };
+    document.getElementById('tab-config').onclick = function() { show('config'); };
 
-    function enviarDatos() {
-      var form=document.getElementById('sessionForm'), fd=new FormData(form);
-      fd.append('action','saveSession');
-      var xhr=new XMLHttpRequest(); xhr.open('POST',scriptUrl,true);
-      xhr.onload=function(){ if(xhr.status===200){ alert('Sesión guardada'); form.reset(); document.getElementById('programasContainer').innerHTML=''; } else alert('Error al guardar sesión'); };
-      xhr.onerror=function(){ alert('Error de conexión'); };
-      xhr.send(fd);
-    }
-
-    document.getElementById('addProgramBtn').onclick=agregarProgramaForm;
-    document.getElementById('toggle-terapeutas').onclick=function(){var d=document.getElementById('list-terapeutas'); d.style.display=d.style.display==='none'?'block':'none'; this.textContent=d.style.display==='block'?'Ocultar Terapeutas':'Mostrar Terapeutas';};
-    document.getElementById('toggle-estudiantes').onclick=function(){var d=document.getElementById('list-estudiantes'); d.style.display=d.style.display==='none'?'block':'none'; this.textContent=d.style.display==='block'?'Ocultar Estudiantes':'Mostrar Estudiantes';};
-    document.getElementById('toggle-programas').onclick=function(){var d=document.getElementById('list-programas'); d.style.display=d.style.display==='none'?'block':'none'; this.textContent=d.style.display==='block'?'Ocultar Programas':'Mostrar Programas';};
-    document.getElementById('sessionForm').onsubmit=function(e){ e.preventDefault(); enviarDatos(); };
-    document.getElementById('tab-form').onclick=function(){showSection('form');};
-    document.getElementById('tab-config').onclick=function(){showSection('config');};
-    function showSection(s){document.getElementById('tab-form').classList.toggle('active',s==='form');document.getElementById('tab-config').classList.toggle('active',s==='config');document.getElementById('section-form').classList.toggle('active',s==='form');document.getElementById('section-config').classList.toggle('active',s==='config');}
-
-    document.addEventListener('DOMContentLoaded',function(){ poblarDropdowns(); getConfig(); showSection('form'); });
+    // Al cargar la página
+    window.addEventListener('load', function() {
+      loadConfig();
+      show('form');
+    });
   </script>
 </body>
 </html>
