@@ -144,25 +144,17 @@
   var e = document.getElementById('new-estudiante').value.trim();
   var p = document.getElementById('new-programa').value.trim();
 
-  // Función auxiliar para secuenciar guardado
-  function saveNext(type, name, callback) {
-    if (!name) { callback(); return; }
-    saveConfig(type, name, false, callback);
-  }
+  if (t) saveConfig('terapeuta', t);
+  if (e) saveConfig('estudiante', e);
+  if (p) saveConfig('programa', p);
 
-  // Secuencia: primero terapeuta, luego estudiante, luego programa
-  saveNext('terapeuta', t, function() {
-    saveNext('estudiante', e, function() {
-      saveNext('programa', p, function() {
-        getConfig();
-      });
-    });
-  });
-
-  // Limpiar campos
-  document.getElementById('new-terapeuta').value = '';
-  document.getElementById('new-estudiante').value = '';
-  document.getElementById('new-programa').value = '';
+  // Después de 1s, recargamos listas y limpiamos inputs
+  setTimeout(function() {
+    getConfig();
+    document.getElementById('new-terapeuta').value = '';
+    document.getElementById('new-estudiante').value = '';
+    document.getElementById('new-programa').value = '';
+  }, 1000);
 };
 
     // Programas dinámicos
