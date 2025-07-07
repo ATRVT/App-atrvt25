@@ -140,19 +140,30 @@
 
     // Botón único: Guardar Configuración
     document.getElementById('save-config-btn').onclick = function() {
-      var t = document.getElementById('new-terapeuta').value.trim();
-      var e = document.getElementById('new-estudiante').value.trim();
-      var p = document.getElementById('new-programa').value.trim();
-      var total = 0, done = 0;
-      function next() { done++; if (done>=total) getConfig(); }
-      if (t) { total++; saveConfig('terapeuta',t,false,next); }
-      if (e) { total++; saveConfig('estudiante',e,false,next); }
-      if (p) { total++; saveConfig('programa',p,false,next); }
-      document.getElementById('new-terapeuta').value='';
-      document.getElementById('new-estudiante').value='';
-      document.getElementById('new-programa').value='';
-      if (total===0) getConfig();
-    };
+  var t = document.getElementById('new-terapeuta').value.trim();
+  var e = document.getElementById('new-estudiante').value.trim();
+  var p = document.getElementById('new-programa').value.trim();
+
+  // Función auxiliar para secuenciar guardado
+  function saveNext(type, name, callback) {
+    if (!name) { callback(); return; }
+    saveConfig(type, name, false, callback);
+  }
+
+  // Secuencia: primero terapeuta, luego estudiante, luego programa
+  saveNext('terapeuta', t, function() {
+    saveNext('estudiante', e, function() {
+      saveNext('programa', p, function() {
+        getConfig();
+      });
+    });
+  });
+
+  // Limpiar campos
+  document.getElementById('new-terapeuta').value = '';
+  document.getElementById('new-estudiante').value = '';
+  document.getElementById('new-programa').value = '';
+};
 
     // Programas dinámicos
     function agregarProgramaForm() {
