@@ -99,16 +99,18 @@
 
     // Cargar configuración inicial
     function loadConfig() {
-      apiGet('action=getConfig', function(err, res) {
-        if (!err && res.status === 'success') {
-          terapeutas = res.config.terapeutas;
-          estudiantes = res.config.estudiantes;
-          programas   = res.config.programas;
-        }
-        populateSessionDropdowns();
-        renderConfigLists();
-      });
+  apiGet('action=getConfig', function(err, res) {
+    if (!err && res.status === 'success') {
+      // Ordenar alfabéticamente cada lista antes de mostrarla
+      terapeutas = res.config.terapeutas.slice().sort();
+      estudiantes = res.config.estudiantes.slice().sort();
+      programas   = res.config.programas.slice().sort();
     }
+    // Actualizar dropdowns y listas
+    populateSessionDropdowns();
+    renderConfigLists();
+  });
+}
 
     // Poblar dropdowns de sesión
     function populateSessionDropdowns() {
