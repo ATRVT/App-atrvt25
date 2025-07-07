@@ -23,7 +23,16 @@
     .checkbox-group { display:flex; flex-wrap:wrap; margin-top:5px; }
     .checkbox-group label { width:48%; }
     .list-item { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
-    .delete-btn { background:transparent; color:#e74c3c; border:1px solid #e74c3c; padding:5px 8px; cursor:pointer; border-radius:4px; }
+    .delete-btn {
+      background: transparent;
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
+      padding: 2px 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -99,27 +108,16 @@
 
     // Cargar configuración inicial
     function loadConfig() {
-  apiGet('action=getConfig', function(err, res) {
-    if (!err && res.status === 'success') {
-      // Ordenar alfabéticamente sin diferenciar mayúsculas/minúsculas
-      terapeutas  = res.config.terapeutas.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
-      estudiantes = res.config.estudiantes.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
-      programas    = res.config.programas.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
+      apiGet('action=getConfig', function(err, res) {
+        if (!err && res.status === 'success') {
+          terapeutas = res.config.terapeutas;
+          estudiantes = res.config.estudiantes;
+          programas   = res.config.programas;
+        }
+        populateSessionDropdowns();
+        renderConfigLists();
+      });
     }
-    // Actualiza dropdowns y listas
-    populateSessionDropdowns();
-    renderConfigLists();
-  });
-}
 
     // Poblar dropdowns de sesión
     function populateSessionDropdowns() {
