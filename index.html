@@ -213,15 +213,105 @@
       cont.appendChild(div);
     };
 
-    // Enviar sesión
-    document.getElementById('sessionForm').onsubmit = function(e) {
-      e.preventDefault();
-      var fd = new FormData(this);
-      fd.append('action','saveSession');
-      var xhr = new XMLHttpRequest(); xhr.open('POST', scriptUrl, true);
-      xhr.onload = function() { if(xhr.status===200) alert('Sesión guardada'); else alert('Error al guardar'); };
-      xhr.onerror = function() { alert('Error de conexión'); };
-      xhr.send(fd);
+   <script>
+// ...deja todo igual arriba (scriptUrl, loadConfig, addProgramBtn, etc.)
+
+// Utilidad: POST con XHR como antes, pero en Promesa
+function postFormData(fd) {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', scriptUrl, true);
+    xhr.onload = function () {
+      (xhr.status === 200) ? resolve() : reject(new Error('HTTP ' + xhr.status));
+    };
+    xhr.onerror = function () { reject(new Error('network')); };
+    xhr.send(fd);
+  });
+}
+
+// Utilidad: añadir clave normal y con [] para máxima compatibilidad backend
+function appendDual(fd, key, value) {
+  if (value == null) value = '';
+  fd.append(key, value);
+  fd.append(key + '[]', value);
+}
+
+// Nuevo envío robusto: un POST por programa, en serie
+document.getElementById('sessionForm').onsubmit = async function (e) {
+  e.preventDefault();
+
+  const submitBtn = this.querySelector('button[type="submit"]');
+  const terapeuta = document.getElementById('terapeuta').value.trim();
+  const estudiante = document.getElementById('estudiante').value.trim();
+  const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
+
+  if (!terapeuta || !estudiante) {
+    alert('Selecciona terapeuta y estudiante.');
+    return;
+  }
+  if (blocks.length === 0) {
+    alert('Agrega al menos un programa.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Guardando...';
+
+  let ok = 0, failed = [];
+
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    // Helpers para leer valores dentro del bloque
+    const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
+
+    const fd = new FormData();
+    fd.append('action', 'saveSession');
+
+    // Campos comunes a todos los programas
+    appendDual(fd, 'terapeuta', terapeuta);
+    appendDual(fd, 'estudiante', estudiante);
+
+    // Campos del programa i (enviados con y sin [])
+    appendDual(fd, 'programa',        getVal('select[name="programa[]"]'));
+    appendDual(fd, 'conj',            getVal('input[name="conj[]"]'));
+    appendDual(fd, 'elementos',       getVal('input[name="elementos[]"]'));
+    appendDual(fd, 'positivos',       getVal('input[name="positivos[]"]'));
+    appendDual(fd, 'negativos',       getVal('input[name="negativos[]"]'));
+    appendDual(fd, 'tipoRef',         getVal('select[name="tipoRef[]"]'));
+    appendDual(fd, 'tiempoColegio',   getVal('input[name="tiempoColegio[]"]'));
+    appendDual(fd, 'tiempoPapas',     getVal('input[name="tiempoPapas[]"]'));
+    appendDual(fd, 'comportamiento',  getVal('textarea[name="comportamiento[]"]'));
+    appendDual(fd, 'comentario',      getVal('textarea[name="comentario[]"]'));
+
+    // Checkboxes de ayudas: conservar exactamente los names (p. ej. ayudaVerbal[])
+    const ayudas = b.querySelectorAll('input[type="checkbox"][name^="ayuda"][name$="[]"]:checked');
+    ayudas.forEach(chk => {
+      fd.append(chk.name, chk.value);
+      fd.append(chk.name.replace('[]',''), chk.value);
+    });
+
+    try {
+      await postFormData(fd);  // secuencial -> evita límites de Apps Script y dupes
+      ok++;
+    } catch (err) {
+      failed.push(i + 1); // 1-based index del programa fallido
+    }
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = originalText;
+
+  if (failed.length) {
+    alert(`Guardado parcial: ${ok}/${blocks.length} programa(s). Falló en: ${failed.join(', ')}`);
+  } else {
+    alert(`Sesión guardada correctamente (${ok} programa/s).`);
+    // Opcional: limpiar formulario o redirigir
+    // this.reset(); document.getElementById('programasContainer').innerHTML = '';
+  }
+};
+</script>
+
     };
 
     // Toggles
