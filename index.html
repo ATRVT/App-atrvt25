@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Registro de Sesión</title>
+  <title>Registro de sesión</title>
   <style>
     :root{--bg:#f7f7fb;--card:#fff;--pri:#2563eb;--text:#111827;--muted:#6b7280;}
     *{box-sizing:border-box}
@@ -21,8 +21,9 @@
     .btn-primary{background:var(--pri);color:#fff}
     .program{border:1px dashed #e5e7eb;border-radius:12px;padding:12px;margin:12px 0;background:#fff}
     .program h3{margin:0 0 8px;font-size:15px}
-    .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{display:inline-flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid #e5e7eb;border-radius:999px}
+    .chips{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:999px;white-space:nowrap}
+    .chip input{margin:0}
     .actions{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:16px}
     .danger{color:#b91c1c}
   </style>
@@ -56,20 +57,36 @@
   </div>
 
   <script>
-    /*********** CONFIG ***********/
-    // Pega aquí tu URL de Apps Script (Web App que termina en /exec)
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbx89Mv9sjeMqz3fZLDDOi_L50MAFjlTGjtmvmGmB0p07boGyTH9SJH6GpRBaF1_uK4VIQ/exec';
+    /* ========= CONFIGURA AQUÍ TU WEB APP ========= */
+    // Pega la URL que termina en /exec
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbys4dvilJkq_8ZnY1pMbD6PO817w5iUf95DEAEU5fYlgJHQguFWBkf9BLY2iDb-hz3szA/exec';
 
-    /*********** UI helpers ***********/
+    /* ===== Helpers genéricos ===== */
     function option(el, value, text){ const o=document.createElement('option'); o.value=value; o.textContent=text; el.appendChild(o); }
     function fillSelect(select, items, placeholder){
       select.innerHTML=''; option(select,'',placeholder||'-- selecciona --');
       (items||[]).forEach(v=> option(select,v,v));
     }
-    function addProgramBlock(programas){
+    // POST “compatible” (evita CORS en Safari/iOS usando FormData)
+    function postJSON(url, data){
+      return new Promise((resolve, reject)=>{
+        try{
+          const fd = new FormData();
+          Object.keys(data||{}).forEach(k=>fd.append(k, data[k]));
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', url, true);
+          xhr.onload  = ()=>{ if (xhr.status===200){ try{ resolve(JSON.parse(xhr.responseText)); }catch(e){ reject(e); } } else reject(new Error('HTTP '+xhr.status)); };
+          xhr.onerror = ()=> reject(new Error('network'));
+          xhr.send(fd);
+        }catch(err){ reject(err); }
+      });
+    }
+
+    /* ===== UI: bloque de programa ===== */
+    function addProgramBlock(config){
       const cont = document.getElementById('programasContainer');
-      const idx = cont.children.length + 1;
-      const div = document.createElement('div');
+      const idx  = cont.children.length + 1;
+      const div  = document.createElement('div');
       div.className='program';
       div.innerHTML = `
         <div class="actions" style="margin-top:0">
@@ -85,11 +102,7 @@
           <div><label>Elementos</label><input type="number" min="0" name="elementos[]" value="0"></div>
           <div>
             <label>Tipo Refuerzo</label>
-            <select name="tipoRef[]">
-              <option value="comida">Comida</option>
-              <option value="juego">Juego</option>
-              <option value="social">Social</option>
-            </select>
+            <select name="tipoRef[]"></select>
           </div>
         </div>
 
@@ -106,8 +119,8 @@
 
         <label>Ayudas aplicadas</label>
         <div class="chips">
-          <label class="chip"><input type="checkbox" name="ayudaVerbal[]" value="verbal"> Verbal</label>
-          <label class="chip"><input type="checkbox" name="ayudaFisica[]" value="fisica"> Física</label>
+          <label class="chip"><input type="checkbox" name="ayudaVerbal[]"  value="verbal"> Verbal</label>
+          <label class="chip"><input type="checkbox" name="ayudaFisica[]"  value="fisica"> Física</label>
           <label class="chip"><input type="checkbox" name="ayudaGestual[]" value="gestual"> Gestual</label>
         </div>
 
@@ -118,44 +131,42 @@
         div.remove(); [...document.querySelectorAll('#programasContainer .program h3')].forEach((h,i)=>h.textContent='Programa #'+(i+1));
       };
       cont.appendChild(div);
-      // llena la lista de programas para este bloque
-      fillSelect(div.querySelector('select[name="programa[]"]'), programas, '-- selecciona programa --');
+
+      // Llenar selects Programa y TipoRef desde config real
+      fillSelect(div.querySelector('select[name="programa[]"]'), (config.programas||[]), '-- selecciona programa --');
+      const tiposRef = (config.tiposRef && config.tiposRef.length) ? config.tiposRef : ['Comida','Juego','Social'];
+      fillSelect(div.querySelector('select[name="tipoRef[]"]'), tiposRef, '-- selecciona tipo --');
     }
 
-    /*********** Carga Config (desde tu hoja) ***********/
+    /* ===== Config desde tu hoja (POST para evitar CORS) ===== */
     async function loadConfig(){
       try{
-        if(!scriptUrl || !/\/exec$/.test(scriptUrl)) throw new Error('Configura "scriptUrl" con tu URL del Web App (/exec).');
+        if (!scriptUrl || !/\/exec$/.test(scriptUrl)) throw new Error('Configura "scriptUrl" con tu URL del Web App (/exec).');
 
-        const url = scriptUrl + '?action=getConfig&ts=' + Date.now();
-        const resp = await fetch(url, {method:'GET', mode:'cors'});
-        const data = await resp.json();
+        const data = await postJSON(scriptUrl, { action:'getConfig' });
+        const config = {
+          terapeutas:  data.terapeutas  || [],
+          estudiantes: data.estudiantes || [],
+          programas:   data.programas   || [],
+          tiposRef:    data.tiposRef    || []
+        };
 
-        const terapeutas  = (data && data.terapeutas)  || [];
-        const estudiantes = (data && data.estudiantes) || [];
-        const programas   = (data && data.programas)   || [];
+        fillSelect(document.getElementById('terapeuta'), config.terapeutas, '-- selecciona terapeuta --');
+        fillSelect(document.getElementById('estudiante'), config.estudiantes, '-- selecciona estudiante --');
 
-        fillSelect(document.getElementById('terapeuta'), terapeutas, '-- selecciona terapeuta --');
-        fillSelect(document.getElementById('estudiante'), estudiantes, '-- selecciona estudiante --');
-
-        // botón agregar programa usa los programas de la hoja
-        document.getElementById('addProgramBtn').onclick = () => addProgramBlock(programas);
-
-        // crea al menos un bloque al iniciar
-        if(document.getElementById('programasContainer').children.length===0){
-          addProgramBlock(programas);
-        }
+        document.getElementById('addProgramBtn').onclick = () => addProgramBlock(config);
+        if (document.getElementById('programasContainer').children.length===0){ addProgramBlock(config); }
       }catch(err){
-        alert(err.message || 'No se pudo cargar la configuración.');
-        // Fallback básico para que no se quede bloqueado
-        fillSelect(document.getElementById('terapeuta'), [], '-- selecciona terapeuta --');
-        fillSelect(document.getElementById('estudiante'), [], '-- selecciona estudiante --');
-        document.getElementById('addProgramBtn').onclick = () => addProgramBlock([]);
-        if(document.getElementById('programasContainer').children.length===0){ addProgramBlock([]); }
+        alert(err.message || 'Load failed');
+        // Fallback mínimo para que no quede bloqueada la UI:
+        const empty = []; fillSelect(document.getElementById('terapeuta'), empty, '-- selecciona terapeuta --');
+        fillSelect(document.getElementById('estudiante'), empty, '-- selecciona estudiante --');
+        document.getElementById('addProgramBtn').onclick = () => addProgramBlock({programas:[],tiposRef:[]});
+        if (document.getElementById('programasContainer').children.length===0){ addProgramBlock({programas:[],tiposRef:[]}); }
       }
     }
 
-    /*********** Envío robusto ***********/
+    /* ===== Envío robusto: 1 POST por programa (a prueba de todo) ===== */
     function postFormData(fd){
       return new Promise((resolve,reject)=>{
         const xhr = new XMLHttpRequest();
@@ -231,7 +242,7 @@
       }
     };
 
-    // inicia
+    // Inicializa
     window.addEventListener('load', loadConfig);
   </script>
 </body>
