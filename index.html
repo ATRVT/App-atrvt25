@@ -1,59 +1,37 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ATRÉVETE</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Sesión</title>
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:10px; }
-    h1 { font-size:24px; margin-bottom:20px; }
-    .tabs { display:flex; margin-bottom:10px; }
-    .tab { flex:1; padding:10px; text-align:center; cursor:pointer; background:#f0f0f0; border:1px solid #ccc; }
-    .tab.active { background:#fff; border-bottom:none; font-weight:bold; }
-
-    .section { display:none; }
-    .section.active { display:block; }
-
-    label, legend { display:block; margin-top:10px; font-size:16px; }
-    select, input[type="text"], input[type="number"], input[type="time"], textarea, button { width:100%; font-size:16px; padding:8px; box-sizing:border-box; margin-top:5px; }
-    button { height:48px; }
-
-    .program { border:1px solid #ccc; margin-top:10px; padding:10px; }
-    fieldset { border:1px solid #ccc; margin-top:15px; padding:10px; }
-    .checkbox-group { display:flex; flex-wrap:wrap; margin-top:5px; }
-    .checkbox-group label { width:48%; }
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-      padding: 4px 0;   /* espacio interno mínimo */
-      border: none;     /* eliminar bordes redundantes */
-    }
-    .delete-btn {
-      background: transparent;
-      color: #e74c3c;
-      border: 1px solid #e74c3c;
-      padding: 2px 8px;   /* más horizontal, menos vertical */
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 4px;
-      flex-shrink: 0;
-      width: auto;        /* asegúrate de que el botón no ocupe todo el ancho */
-    }
+    :root{--bg:#f7f7fb;--card:#fff;--pri:#2563eb;--text:#111827;--muted:#6b7280;}
+    *{box-sizing:border-box}
+    body{margin:0;padding:16px;font-family:system-ui,Roboto,Arial;color:var(--text);background:var(--bg)}
+    .card{background:var(--card);border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.06);padding:16px;margin:auto;max-width:820px}
+    h1{font-size:20px;margin:0 0 12px}
+    label{display:block;font-weight:600;margin:14px 0 6px}
+    select,input,textarea{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;font:inherit;background:#fff}
+    textarea{min-height:80px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .muted{color:var(--muted);font-size:12px}
+    .btn{display:inline-block;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+    .btn-ghost{background:#eef2ff;color:#3730a3}
+    .btn-primary{background:var(--pri);color:#fff}
+    .program{border:1px dashed #e5e7eb;border-radius:12px;padding:12px;margin:12px 0;background:#fff}
+    .program h3{margin:0 0 8px;font-size:15px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{display:inline-flex;gap:6px;align-items:center;padding:8px 10px;border:1px solid #e5e7eb;border-radius:999px}
+    .actions{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:16px}
+    .danger{color:#b91c1c}
   </style>
 </head>
 <body>
-  <h1>ATRÉVETE</h1>
+  <div class="card">
+    <h1>Registro de sesión</h1>
 
-  <div class="tabs">
-    <div id="tab-form" class="tab active">Sesión</div>
-    <div id="tab-config" class="tab">Configuración</div>
-  </div>
-
-  <!-- Sección Sesión -->
-  <div id="section-form" class="section active">
-    <form id="sessionForm">
+    <form id="sessionForm" autocomplete="off">
       <label for="terapeuta">Terapeuta</label>
       <select id="terapeuta" name="terapeuta">
         <option value="">-- selecciona terapeuta --</option>
@@ -64,272 +42,214 @@
         <option value="">-- selecciona estudiante --</option>
       </select>
 
+      <div class="actions">
+        <button type="button" id="addProgramBtn" class="btn btn-ghost">+ Agregar Programa</button>
+      </div>
+
       <div id="programasContainer"></div>
-      <button type="button" id="addProgramBtn">+ Agregar Programa</button>
-      <button type="submit">Guardar Sesión</button>
+
+      <div class="actions">
+        <span class="muted">Se enviará una fila a Sheets por cada programa.</span>
+        <button type="submit" class="btn btn-primary">Guardar Sesión</button>
+      </div>
     </form>
   </div>
 
-  <!-- Sección Configuración -->
-  <div id="section-config" class="section">
-    <fieldset>
-      <legend>Terapeutas</legend>
-      <button type="button" id="toggle-terapeutas">Mostrar Terapeutas</button>
-      <div id="list-terapeutas" style="display:none; margin-top:10px;"></div>
-      <input type="text" id="new-terapeuta" placeholder="Nombre nuevo terapeuta">
-    </fieldset>
-    <fieldset>
-      <legend>Estudiantes</legend>
-      <button type="button" id="toggle-estudiantes">Mostrar Estudiantes</button>
-      <div id="list-estudiantes" style="display:none; margin-top:10px;"></div>
-      <input type="text" id="new-estudiante" placeholder="Nombre nuevo estudiante">
-    </fieldset>
-    <fieldset>
-      <legend>Programas</legend>
-      <button type="button" id="toggle-programas">Mostrar Programas</button>
-      <div id="list-programas" style="display:none; margin-top:10px;"></div>
-      <input type="text" id="new-programa" placeholder="Nombre nuevo programa">
-    </fieldset>
-    <button type="button" id="save-config-btn">Guardar Configuración</button>
-  </div>
-
   <script>
-    // URL de la Web App
-    var scriptUrl = 'https://script.google.com/macros/s/AKfycbxpuRuQqYozRLDdkVr-sCWrzZ1_TxSl_Jdrr_8z8Sk_GKaSxYDid2wzV3v4KXhqv79k/exec';
+    /*****************  CONFIG  *****************/
+    // ⚠️ Reemplaza con TU URL de Apps Script (implementado como web app)
+    const scriptUrl = 'PASTE_AQUI_TU_URL_DE_APPS_SCRIPT';
 
-    // Arrays de datos
-    var terapeutas = [], estudiantes = [], programas = [];
+    // Opciones de ejemplo. Rellena con tus valores reales o cárgalos como prefieras.
+    const TERAPEUTAS = ['Laura', 'Andrea', 'María'];
+    const ESTUDIANTES = ['Ana P.', 'Luis R.', 'Marco T.'];
+    const PROGRAMAS = ['Discriminación de olores', 'Búsqueda dirigida', 'Marcaje sit&stare'];
 
-    // Función genérica GET
-    function apiGet(params, cb) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', scriptUrl + '?' + params, true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          try { cb(null, JSON.parse(xhr.responseText)); }
-          catch(e) { cb(e); }
-        } else cb(new Error('HTTP ' + xhr.status));
+    /***************  UI Helpers  ***************/
+    function fillSelect(select, items, placeholder) {
+      select.innerHTML = '';
+      const ph = document.createElement('option');
+      ph.value = ''; ph.textContent = placeholder || '-- selecciona --';
+      select.appendChild(ph);
+      items.forEach(v => {
+        const o = document.createElement('option');
+        o.value = v; o.textContent = v;
+        select.appendChild(o);
+      });
+    }
+
+    function addProgramBlock() {
+      const cont = document.getElementById('programasContainer');
+      const idx = cont.children.length + 1;
+
+      const div = document.createElement('div');
+      div.className = 'program';
+      div.innerHTML = `
+        <div class="actions" style="margin-top:0">
+          <h3>Programa #${idx}</h3>
+          <button type="button" class="btn btn-ghost danger remove-program">Eliminar</button>
+        </div>
+
+        <label>Programa</label>
+        <select name="programa[]">
+          ${PROGRAMAS.map(p => `<option value="${p}">${p}</option>`).join('')}
+        </select>
+
+        <div class="row-3">
+          <div>
+            <label>Conjuntos</label>
+            <input type="number" min="0" name="conj[]" value="0">
+          </div>
+          <div>
+            <label>Elementos</label>
+            <input type="number" min="0" name="elementos[]" value="0">
+          </div>
+          <div>
+            <label>Tipo Refuerzo</label>
+            <select name="tipoRef[]">
+              <option value="comida">Comida</option>
+              <option value="juego">Juego</option>
+              <option value="social">Social</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div>
+            <label>Positivos</label>
+            <input type="number" min="0" name="positivos[]" value="0">
+          </div>
+          <div>
+            <label>Negativos</label>
+            <input type="number" min="0" name="negativos[]" value="0">
+          </div>
+          <div>
+            <label>Tiempo con Papás (min)</label>
+            <input type="number" min="0" name="tiempoPapas[]" value="0">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Tiempo en Colegio (min)</label>
+            <input type="number" min="0" name="tiempoColegio[]" value="0">
+          </div>
+          <div>
+            <label>Comportamiento observado</label>
+            <textarea name="comportamiento[]"></textarea>
+          </div>
+        </div>
+
+        <label>Ayudas aplicadas</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="ayudaVerbal[]" value="verbal"> Verbal</label>
+          <label class="chip"><input type="checkbox" name="ayudaFisica[]" value="fisica"> Física</label>
+          <label class="chip"><input type="checkbox" name="ayudaGestual[]" value="gestual"> Gestual</label>
+        </div>
+
+        <label>Comentario</label>
+        <textarea name="comentario[]"></textarea>
+      `;
+
+      div.querySelector('.remove-program').onclick = () => {
+        div.remove();
+        // Reindex visual
+        [...document.querySelectorAll('#programasContainer .program h3')].forEach((h, i) => h.textContent = 'Programa #' + (i+1));
       };
-      xhr.onerror = function() { cb(new Error('Network error')); };
-      xhr.send();
-    }
 
-    // Cargar configuración inicial
-    function loadConfig() {
-  apiGet('action=getConfig', function(err, res) {
-    if (!err && res.status === 'success') {
-      // Ordenar alfabéticamente sin diferenciar mayúsculas/minúsculas
-      terapeutas  = res.config.terapeutas.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
-      estudiantes = res.config.estudiantes.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
-      programas    = res.config.programas.slice()
-        .sort(function(a, b) {
-          return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        });
-    }
-    // Actualiza dropdowns y listas
-    populateSessionDropdowns();
-    renderConfigLists();
-  });
-}
-
-    // Poblar dropdowns de sesión
-    function populateSessionDropdowns() {
-      var tSel = document.getElementById('terapeuta'), eSel = document.getElementById('estudiante');
-      tSel.innerHTML = '<option value="">-- selecciona terapeuta --</option>';
-      eSel.innerHTML = '<option value="">-- selecciona estudiante --</option>';
-      terapeutas.forEach(function(n){ var o=document.createElement('option'); o.value=o.text=n; tSel.add(o); });
-      estudiantes.forEach(function(n){ var o2=document.createElement('option'); o2.value=o2.text=n; eSel.add(o2); });
-    }
-
-    // Renderizar listas de configuración
-    function renderConfigLists() {
-      renderList('list-terapeutas','terapeuta',terapeutas);
-      renderList('list-estudiantes','estudiante',estudiantes);
-      renderList('list-programas','programa',programas);
-    }
-    function renderList(id,type,arr) {
-      var div=document.getElementById(id); div.innerHTML='';
-      arr.forEach(function(name){
-        var item=document.createElement('div'); item.className='list-item';
-        var span=document.createElement('span'); span.textContent=name;
-        var btn=document.createElement('button'); btn.className='delete-btn'; btn.textContent='Eliminar';
-        btn.onclick=function(){ if(confirm('Eliminar '+name+'?')) apiGet('action=saveConfig&type='+type+'&name='+encodeURIComponent(name)+'&remove=true',loadConfig); };
-        item.appendChild(span); item.appendChild(btn); div.appendChild(item);
-      });
-    }
-
-    // Botón Guardar Configuración
-    document.getElementById('save-config-btn').onclick = function() {
-      var t=document.getElementById('new-terapeuta').value.trim();
-      var e=document.getElementById('new-estudiante').value.trim();
-      var p=document.getElementById('new-programa').value.trim();
-      var count=0;
-      function done(){ if(--count<=0) loadConfig(); }
-      if(t){ count++; apiGet('action=saveConfig&type=terapeuta&name='+encodeURIComponent(t),done); }
-      if(e){ count++; apiGet('action=saveConfig&type=estudiante&name='+encodeURIComponent(e),done); }
-      if(p){ count++; apiGet('action=saveConfig&type=programa&name='+encodeURIComponent(p),done); }
-      document.getElementById('new-terapeuta').value='';
-      document.getElementById('new-estudiante').value='';
-      document.getElementById('new-programa').value='';
-      if(count===0) loadConfig();
-    };
-
-    // Agregar programa dinámico en sesión
-    document.getElementById('addProgramBtn').onclick = function() {
-      var cont = document.getElementById('programasContainer');
-      var div = document.createElement('div'); div.className='program';
-      var html = '';
-      html += '<label>Programa<select name="programa[]"><option value="">-- elige programa --</option>';
-      programas.forEach(function(pr){ html += '<option>'+pr+'</option>'; });
-      html += '</select></label>';
-      html += '<label>Conj/Nivel<input name="conj[]" type="text"></label>';
-      html += '<label>Elementos<input name="elementos[]" type="text"></label>';
-      html += '<label>Ensayos +<input name="positivos[]" type="number"></label>';
-      html += '<label>Ensayos -<input name="negativos[]" type="number"></label>';
-      html += '<fieldset><legend>Tipo de ayuda</legend><div class="checkbox-group">';
-      ['Ninguna','Verbal','Gestual','Física parcial','Física total','Física sombra'].forEach(function(a){
-        var attr='ayuda'+a.replace(/\s+/g,'');
-        html += '<label><input type="checkbox" name="'+attr+'[]" value="'+a+'"> '+a+'</label>';
-      });
-      html += '</div></fieldset>';
-      html += '<fieldset><legend>Tipo de reforzador</legend><div class="checkbox-group">';
-      ['Comestible','Sensorial','Social','Tangible','Economía','Actividad','Prueba/test'].forEach(function(r){
-        var attr='ref'+r.replace(/\s+|\//g,'');
-        html += '<label><input type="checkbox" name="'+attr+'[]" value="'+r+'"> '+r+'</label>';
-      });
-      html += '</div></fieldset>';
-      html += '<label>Tipo reforzamiento<select name="tipoRef[]"><option value="">-- elige reforzamiento --</option><option>Continuo</option><option>Variable</option><option>Prueba/test</option></select></label>';
-      html += '<label>Tiempo colegio<input name="tiempoColegio[]" type="time"></label>';
-      html += '<label>Tiempo papás<input name="tiempoPapas[]" type="time"></label>';
-      html += '<label>Comportamiento relevante<textarea name="comportamiento[]"></textarea></label>';
-      html += '<label>Comentario<textarea name="comentario[]"></textarea></label>';
-      div.innerHTML = html;
       cont.appendChild(div);
-    };
+    }
 
-   <script>
-// ...deja todo igual arriba (scriptUrl, loadConfig, addProgramBtn, etc.)
-
-// Utilidad: POST con XHR como antes, pero en Promesa
-function postFormData(fd) {
-  return new Promise((resolve, reject) => {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', scriptUrl, true);
-    xhr.onload = function () {
-      (xhr.status === 200) ? resolve() : reject(new Error('HTTP ' + xhr.status));
-    };
-    xhr.onerror = function () { reject(new Error('network')); };
-    xhr.send(fd);
-  });
-}
-
-// Utilidad: añadir clave normal y con [] para máxima compatibilidad backend
-function appendDual(fd, key, value) {
-  if (value == null) value = '';
-  fd.append(key, value);
-  fd.append(key + '[]', value);
-}
-
-// Nuevo envío robusto: un POST por programa, en serie
-document.getElementById('sessionForm').onsubmit = async function (e) {
-  e.preventDefault();
-
-  const submitBtn = this.querySelector('button[type="submit"]');
-  const terapeuta = document.getElementById('terapeuta').value.trim();
-  const estudiante = document.getElementById('estudiante').value.trim();
-  const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
-
-  if (!terapeuta || !estudiante) {
-    alert('Selecciona terapeuta y estudiante.');
-    return;
-  }
-  if (blocks.length === 0) {
-    alert('Agrega al menos un programa.');
-    return;
-  }
-
-  submitBtn.disabled = true;
-  const originalText = submitBtn.textContent;
-  submitBtn.textContent = 'Guardando...';
-
-  let ok = 0, failed = [];
-
-  for (let i = 0; i < blocks.length; i++) {
-    const b = blocks[i];
-    // Helpers para leer valores dentro del bloque
-    const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
-
-    const fd = new FormData();
-    fd.append('action', 'saveSession');
-
-    // Campos comunes a todos los programas
-    appendDual(fd, 'terapeuta', terapeuta);
-    appendDual(fd, 'estudiante', estudiante);
-
-    // Campos del programa i (enviados con y sin [])
-    appendDual(fd, 'programa',        getVal('select[name="programa[]"]'));
-    appendDual(fd, 'conj',            getVal('input[name="conj[]"]'));
-    appendDual(fd, 'elementos',       getVal('input[name="elementos[]"]'));
-    appendDual(fd, 'positivos',       getVal('input[name="positivos[]"]'));
-    appendDual(fd, 'negativos',       getVal('input[name="negativos[]"]'));
-    appendDual(fd, 'tipoRef',         getVal('select[name="tipoRef[]"]'));
-    appendDual(fd, 'tiempoColegio',   getVal('input[name="tiempoColegio[]"]'));
-    appendDual(fd, 'tiempoPapas',     getVal('input[name="tiempoPapas[]"]'));
-    appendDual(fd, 'comportamiento',  getVal('textarea[name="comportamiento[]"]'));
-    appendDual(fd, 'comentario',      getVal('textarea[name="comentario[]"]'));
-
-    // Checkboxes de ayudas: conservar exactamente los names (p. ej. ayudaVerbal[])
-    const ayudas = b.querySelectorAll('input[type="checkbox"][name^="ayuda"][name$="[]"]:checked');
-    ayudas.forEach(chk => {
-      fd.append(chk.name, chk.value);
-      fd.append(chk.name.replace('[]',''), chk.value);
+    /***************  Inicialización  ***************/
+    window.addEventListener('load', () => {
+      fillSelect(document.getElementById('terapeuta'), TERAPEUTAS, '-- selecciona terapeuta --');
+      fillSelect(document.getElementById('estudiante'), ESTUDIANTES, '-- selecciona estudiante --');
+      document.getElementById('addProgramBtn').onclick = addProgramBlock;
     });
 
-    try {
-      await postFormData(fd);  // secuencial -> evita límites de Apps Script y dupes
-      ok++;
-    } catch (err) {
-      failed.push(i + 1); // 1-based index del programa fallido
+    /***************  Envío robusto  ***************/
+    // POST con XHR como antes, envuelto en Promesa
+    function postFormData(fd) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', scriptUrl, true);
+        xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error('HTTP ' + xhr.status)));
+        xhr.onerror = () => reject(new Error('network'));
+        xhr.send(fd);
+      });
     }
-  }
 
-  submitBtn.disabled = false;
-  submitBtn.textContent = originalText;
+    // Añade clave normal y con [] para compatibilidad en Apps Script
+    function appendDual(fd, key, value) {
+      if (value == null) value = '';
+      fd.append(key, value);
+      fd.append(key + '[]', value);
+    }
 
-  if (failed.length) {
-    alert(`Guardado parcial: ${ok}/${blocks.length} programa(s). Falló en: ${failed.join(', ')}`);
-  } else {
-    alert(`Sesión guardada correctamente (${ok} programa/s).`);
-    // Opcional: limpiar formulario o redirigir
-    // this.reset(); document.getElementById('programasContainer').innerHTML = '';
-  }
-};
-</script>
+    // Un POST por cada bloque de programa (independiente del parseo de arrays)
+    document.getElementById('sessionForm').onsubmit = async function(e){
+      e.preventDefault();
 
+      const terapeuta = document.getElementById('terapeuta').value.trim();
+      const estudiante = document.getElementById('estudiante').value.trim();
+      const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
+      const submitBtn = this.querySelector('button[type="submit"]');
+
+      if (!scriptUrl || scriptUrl.includes('PASTE_AQUI')) { alert('Configura "scriptUrl" con tu URL de Apps Script.'); return; }
+      if (!terapeuta || !estudiante) { alert('Selecciona terapeuta y estudiante.'); return; }
+      if (blocks.length === 0) { alert('Agrega al menos un programa.'); return; }
+
+      submitBtn.disabled = true;
+      const original = submitBtn.textContent;
+      submitBtn.textContent = 'Guardando...';
+
+      let ok = 0, failed = [];
+
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
+
+        const fd = new FormData();
+        fd.append('action', 'saveSession');
+
+        // Comunes a todos
+        appendDual(fd, 'terapeuta', terapeuta);
+        appendDual(fd, 'estudiante', estudiante);
+
+        // Campos del bloque
+        appendDual(fd, 'programa',       getVal('select[name="programa[]"]'));
+        appendDual(fd, 'conj',           getVal('input[name="conj[]"]'));
+        appendDual(fd, 'elementos',      getVal('input[name="elementos[]"]'));
+        appendDual(fd, 'positivos',      getVal('input[name="positivos[]"]'));
+        appendDual(fd, 'negativos',      getVal('input[name="negativos[]"]'));
+        appendDual(fd, 'tipoRef',        getVal('select[name="tipoRef[]"]'));
+        appendDual(fd, 'tiempoColegio',  getVal('input[name="tiempoColegio[]"]'));
+        appendDual(fd, 'tiempoPapas',    getVal('input[name="tiempoPapas[]"]'));
+        appendDual(fd, 'comportamiento', getVal('textarea[name="comportamiento[]"]'));
+        appendDual(fd, 'comentario',     getVal('textarea[name="comentario[]"]'));
+
+        // Ayudas (checkboxes con names terminados en [])
+        const ayudas = b.querySelectorAll('input[type="checkbox"][name$="[]"]:checked');
+        ayudas.forEach(chk => {
+          fd.append(chk.name, chk.value);                 // con []
+          fd.append(chk.name.replace('[]',''), chk.value);// sin []
+        });
+
+        try { await postFormData(fd); ok++; }
+        catch (err) { failed.push(i+1); }
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = original;
+
+      if (failed.length) {
+        alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
+      } else {
+        alert(`Sesión guardada correctamente (${ok} programa/s).`);
+        // Limpieza opcional:
+        // this.reset(); document.getElementById('programasContainer').innerHTML='';
+      }
     };
-
-    // Toggles
-    document.getElementById('toggle-terapeutas').onclick = function(){var d=document.getElementById('list-terapeutas');d.style.display=d.style.display==='none'?'block':'none';this.textContent=d.style.display==='block'?'Ocultar Terapeutas':'Mostrar Terapeutas';};
-    document.getElementById('toggle-estudiantes').onclick = function(){var d=document.getElementById('list-estudiantes');d.style.display=d.style.display==='none'?'block':'none';this.textContent=d.style.display==='block'?'Ocultar Estudiantes':'Mostrar Estudiantes';};
-    document.getElementById('toggle-programas').onclick = function(){var d=document.getElementById('list-programas');d.style.display=d.style.display==='none'?'block':'none';this.textContent=d.style.display==='block'?'Ocultar Programas':'Mostrar Programas';};
-
-    // Pestañas
-    function show(tab) {
-      document.getElementById('tab-form').classList.toggle('active', tab==='form');
-      document.getElementById('tab-config').classList.toggle('active', tab==='config');
-      document.getElementById('section-form').classList.toggle('active', tab==='form');
-      document.getElementById('section-config').classList.toggle('active', tab==='config');
-    }
-    document.getElementById('tab-form').onclick   = function(){show('form');};
-    document.getElementById('tab-config').onclick = function(){show('config');};
-
-    window.addEventListener('load', function(){ loadConfig(); show('form'); });
   </script>
 </body>
 </html>
