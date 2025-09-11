@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Registro de Sesión</title>
   <style>
     :root{--bg:#f7f7fb;--card:#fff;--pri:#2563eb;--text:#111827;--muted:#6b7280;}
@@ -34,12 +34,12 @@
     <form id="sessionForm" autocomplete="off">
       <label for="terapeuta">Terapeuta</label>
       <select id="terapeuta" name="terapeuta">
-        <option value="">-- selecciona terapeuta --</option>
+        <option value="">Cargando…</option>
       </select>
 
       <label for="estudiante">Estudiante</label>
       <select id="estudiante" name="estudiante">
-        <option value="">-- selecciona estudiante --</option>
+        <option value="">Cargando…</option>
       </select>
 
       <div class="actions">
@@ -56,29 +56,21 @@
   </div>
 
   <script>
-    /*****************  CONFIG  *****************/
-    // ⚠️ Reemplaza con TU URL de Apps Script (implementado como web app)
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwjGj9Xbw0fln91vEwgFrupj33DRcjd7tXKF7XOR5bVSzP9Ij2ByIcgfwZx4hOyHFL3/exec';
+    /*********** CONFIG ***********/
+    // Pega aquí tu URL de Apps Script (Web App que termina en /exec)
+    const scriptUrl = 'PON_AQUI_TU_URL_/exec';
 
-    /***************  UI Helpers  ***************/
-    function fillSelect(select, items, placeholder) {
-      select.innerHTML = '';
-      const ph = document.createElement('option');
-      ph.value = ''; ph.textContent = placeholder || '-- selecciona --';
-      select.appendChild(ph);
-      items.forEach(v => {
-        const o = document.createElement('option');
-        o.value = v; o.textContent = v;
-        select.appendChild(o);
-      });
+    /*********** UI helpers ***********/
+    function option(el, value, text){ const o=document.createElement('option'); o.value=value; o.textContent=text; el.appendChild(o); }
+    function fillSelect(select, items, placeholder){
+      select.innerHTML=''; option(select,'',placeholder||'-- selecciona --');
+      (items||[]).forEach(v=> option(select,v,v));
     }
-
-    function addProgramBlock() {
+    function addProgramBlock(programas){
       const cont = document.getElementById('programasContainer');
       const idx = cont.children.length + 1;
-
       const div = document.createElement('div');
-      div.className = 'program';
+      div.className='program';
       div.innerHTML = `
         <div class="actions" style="margin-top:0">
           <h3>Programa #${idx}</h3>
@@ -86,19 +78,11 @@
         </div>
 
         <label>Programa</label>
-        <select name="programa[]">
-          ${PROGRAMAS.map(p => `<option value="${p}">${p}</option>`).join('')}
-        </select>
+        <select name="programa[]"></select>
 
         <div class="row-3">
-          <div>
-            <label>Conjuntos</label>
-            <input type="number" min="0" name="conj[]" value="0">
-          </div>
-          <div>
-            <label>Elementos</label>
-            <input type="number" min="0" name="elementos[]" value="0">
-          </div>
+          <div><label>Conjuntos</label><input type="number" min="0" name="conj[]" value="0"></div>
+          <div><label>Elementos</label><input type="number" min="0" name="elementos[]" value="0"></div>
           <div>
             <label>Tipo Refuerzo</label>
             <select name="tipoRef[]">
@@ -110,29 +94,14 @@
         </div>
 
         <div class="row-3">
-          <div>
-            <label>Positivos</label>
-            <input type="number" min="0" name="positivos[]" value="0">
-          </div>
-          <div>
-            <label>Negativos</label>
-            <input type="number" min="0" name="negativos[]" value="0">
-          </div>
-          <div>
-            <label>Tiempo con Papás (min)</label>
-            <input type="number" min="0" name="tiempoPapas[]" value="0">
-          </div>
+          <div><label>Positivos</label><input type="number" min="0" name="positivos[]" value="0"></div>
+          <div><label>Negativos</label><input type="number" min="0" name="negativos[]" value="0"></div>
+          <div><label>Tiempo con Papás (min)</label><input type="number" min="0" name="tiempoPapas[]" value="0"></div>
         </div>
 
         <div class="row">
-          <div>
-            <label>Tiempo en Colegio (min)</label>
-            <input type="number" min="0" name="tiempoColegio[]" value="0">
-          </div>
-          <div>
-            <label>Comportamiento observado</label>
-            <textarea name="comportamiento[]"></textarea>
-          </div>
+          <div><label>Tiempo en Colegio (min)</label><input type="number" min="0" name="tiempoColegio[]" value="0"></div>
+          <div><label>Comportamiento observado</label><textarea name="comportamiento[]"></textarea></div>
         </div>
 
         <label>Ayudas aplicadas</label>
@@ -145,174 +114,115 @@
         <label>Comentario</label>
         <textarea name="comentario[]"></textarea>
       `;
-
       div.querySelector('.remove-program').onclick = () => {
-        div.remove();
-        // Reindex visual
-        [...document.querySelectorAll('#programasContainer .program h3')].forEach((h, i) => h.textContent = 'Programa #' + (i+1));
+        div.remove(); [...document.querySelectorAll('#programasContainer .program h3')].forEach((h,i)=>h.textContent='Programa #'+(i+1));
       };
-
       cont.appendChild(div);
+      // llena la lista de programas para este bloque
+      fillSelect(div.querySelector('select[name="programa[]"]'), programas, '-- selecciona programa --');
     }
 
-    /***************  Inicialización  ***************/
-    window.addEventListener('load', () => {
-      fillSelect(document.getElementById('terapeuta'), TERAPEUTAS, '-- selecciona terapeuta --');
-      fillSelect(document.getElementById('estudiante'), ESTUDIANTES, '-- selecciona estudiante --');
-      document.getElementById('addProgramBtn').onclick = addProgramBlock;
-    });
-
-   /* === INICIO PATCH ENVÍO ROBUSTO === */
-(function(){
-  // Helpers
-  function postFormData(fd){
-    return new Promise((resolve,reject)=>{
+    /*********** Carga Config (desde tu hoja) ***********/
+    async function loadConfig(){
       try{
-        var xhr = new XMLHttpRequest();
+        if(!scriptUrl || !/\/exec$/.test(scriptUrl)) throw new Error('Configura "scriptUrl" con tu URL del Web App (/exec).');
+
+        const url = scriptUrl + '?action=getConfig&ts=' + Date.now();
+        const resp = await fetch(url, {method:'GET', mode:'cors'});
+        const data = await resp.json();
+
+        const terapeutas  = (data && data.terapeutas)  || [];
+        const estudiantes = (data && data.estudiantes) || [];
+        const programas   = (data && data.programas)   || [];
+
+        fillSelect(document.getElementById('terapeuta'), terapeutas, '-- selecciona terapeuta --');
+        fillSelect(document.getElementById('estudiante'), estudiantes, '-- selecciona estudiante --');
+
+        // botón agregar programa usa los programas de la hoja
+        document.getElementById('addProgramBtn').onclick = () => addProgramBlock(programas);
+
+        // crea al menos un bloque al iniciar
+        if(document.getElementById('programasContainer').children.length===0){
+          addProgramBlock(programas);
+        }
+      }catch(err){
+        alert(err.message || 'No se pudo cargar la configuración.');
+        // Fallback básico para que no se quede bloqueado
+        fillSelect(document.getElementById('terapeuta'), [], '-- selecciona terapeuta --');
+        fillSelect(document.getElementById('estudiante'), [], '-- selecciona estudiante --');
+        document.getElementById('addProgramBtn').onclick = () => addProgramBlock([]);
+        if(document.getElementById('programasContainer').children.length===0){ addProgramBlock([]); }
+      }
+    }
+
+    /*********** Envío robusto ***********/
+    function postFormData(fd){
+      return new Promise((resolve,reject)=>{
+        const xhr = new XMLHttpRequest();
         xhr.open('POST', scriptUrl, true);
-        xhr.onload = function(){ (xhr.status===200) ? resolve() : reject(new Error('HTTP '+xhr.status)); };
-        xhr.onerror = function(){ reject(new Error('network')); };
+        xhr.onload  = () => (xhr.status===200 ? resolve() : reject(new Error('HTTP '+xhr.status)));
+        xhr.onerror = () => reject(new Error('network'));
         xhr.send(fd);
-      }catch(err){ reject(err); }
-    });
-  }
-  function appendDual(fd,key,value){
-    if(value==null) value='';
-    fd.append(key, value);      // sin []
-    fd.append(key+'[]', value); // con []
-  }
-
-  document.getElementById('sessionForm').onsubmit = async function(e){
-    e.preventDefault();
-
-    const form = this;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const terapeuta  = (document.getElementById('terapeuta')?.value || '').trim();
-    const estudiante = (document.getElementById('estudiante')?.value || '').trim();
-    const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
-
-    if (!scriptUrl){ alert('Falta configurar scriptUrl con la URL del Web App.'); return; }
-    if (!terapeuta || !estudiante){ alert('Selecciona terapeuta y estudiante.'); return; }
-    if (blocks.length === 0){ alert('Agrega al menos un programa.'); return; }
-
-    if (submitBtn){ submitBtn.disabled = true; var original = submitBtn.textContent; submitBtn.textContent='Guardando...'; }
-
-    let ok=0, failed=[];
-    for (let i=0;i<blocks.length;i++){
-      const b = blocks[i];
-      const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
-
-      const fd = new FormData();
-      fd.append('action','saveSession');
-
-      // comunes
-      appendDual(fd,'terapeuta',terapeuta);
-      appendDual(fd,'estudiante',estudiante);
-
-      // campos del bloque (acepta name con y sin [])
-      appendDual(fd,'programa',       getVal('select[name="programa[]"], select[name="programa"]'));
-      appendDual(fd,'conj',           getVal('input[name="conj[]"], input[name="conj"]'));
-      appendDual(fd,'elementos',      getVal('input[name="elementos[]"], input[name="elementos"]'));
-      appendDual(fd,'positivos',      getVal('input[name="positivos[]"], input[name="positivos"]'));
-      appendDual(fd,'negativos',      getVal('input[name="negativos[]"], input[name="negativos"]'));
-      appendDual(fd,'tipoRef',        getVal('select[name="tipoRef[]"], select[name="tipoRef"]'));
-      appendDual(fd,'tiempoColegio',  getVal('input[name="tiempoColegio[]"], input[name="tiempoColegio"]'));
-      appendDual(fd,'tiempoPapas',    getVal('input[name="tiempoPapas[]"], input[name="tiempoPapas"]'));
-      appendDual(fd,'comportamiento', getVal('textarea[name="comportamiento[]"], textarea[name="comportamiento"]'));
-      appendDual(fd,'comentario',     getVal('textarea[name="comentario[]"], textarea[name="comentario"]'));
-
-      // ayudas (todas las que empiecen por "ayuda")
-      const ayudas = b.querySelectorAll('input[type="checkbox"][name^="ayuda"]:checked');
-      ayudas.forEach(chk=>{
-        const base = chk.name.replace(/\[\]$/,'');
-        fd.append(base+'[]', chk.value);
-        fd.append(base, chk.value);
-      });
-
-      try{ await postFormData(fd); ok++; }
-      catch(err){ failed.push(i+1); }
-    }
-
-    if (submitBtn){ submitBtn.disabled=false; submitBtn.textContent=original; }
-
-    if (failed.length){
-      alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
-    }else{
-      alert(`Sesión guardada correctamente (${ok} programa/s).`);
-      // Opcional: limpiar
-      // form.reset(); document.getElementById('programasContainer').innerHTML='';
-    }
-  };
-})();
- /* === FIN PATCH ENVÍO ROBUSTO === */
-
       });
     }
-
-    // Añade clave normal y con [] para compatibilidad en Apps Script
-    function appendDual(fd, key, value) {
-      if (value == null) value = '';
-      fd.append(key, value);
-      fd.append(key + '[]', value);
+    function appendDual(fd,key,value){
+      if(value==null) value='';
+      fd.append(key, value);      // sin []
+      fd.append(key+'[]', value); // con []
     }
 
-    // Un POST por cada bloque de programa (independiente del parseo de arrays)
     document.getElementById('sessionForm').onsubmit = async function(e){
       e.preventDefault();
 
-      const terapeuta = document.getElementById('terapeuta').value.trim();
-      const estudiante = document.getElementById('estudiante').value.trim();
+      const terapeuta  = (document.getElementById('terapeuta')?.value || '').trim();
+      const estudiante = (document.getElementById('estudiante')?.value || '').trim();
       const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
       const submitBtn = this.querySelector('button[type="submit"]');
 
-      if (!scriptUrl || scriptUrl.includes('PASTE_AQUI')) { alert('Configura "scriptUrl" con tu URL de Apps Script.'); return; }
+      if (!scriptUrl || !/\/exec$/.test(scriptUrl)) { alert('Configura "scriptUrl" con tu URL del Web App (/exec).'); return; }
       if (!terapeuta || !estudiante) { alert('Selecciona terapeuta y estudiante.'); return; }
-      if (blocks.length === 0) { alert('Agrega al menos un programa.'); return; }
+      if (blocks.length===0) { alert('Agrega al menos un programa.'); return; }
 
-      submitBtn.disabled = true;
-      const original = submitBtn.textContent;
-      submitBtn.textContent = 'Guardando...';
+      submitBtn.disabled=true; const original=submitBtn.textContent; submitBtn.textContent='Guardando…';
 
-      let ok = 0, failed = [];
-
-      for (let i = 0; i < blocks.length; i++) {
+      let ok=0, failed=[];
+      for(let i=0;i<blocks.length;i++){
         const b = blocks[i];
-        const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
+        const val = (sel) => (b.querySelector(sel)?.value || '').trim();
 
         const fd = new FormData();
-        fd.append('action', 'saveSession');
+        fd.append('action','saveSession');
 
-        // Comunes a todos
-        appendDual(fd, 'terapeuta', terapeuta);
-        appendDual(fd, 'estudiante', estudiante);
+        // comunes
+        appendDual(fd,'terapeuta',terapeuta);
+        appendDual(fd,'estudiante',estudiante);
 
-        // Campos del bloque
-        appendDual(fd, 'programa',       getVal('select[name="programa[]"]'));
-        appendDual(fd, 'conj',           getVal('input[name="conj[]"]'));
-        appendDual(fd, 'elementos',      getVal('input[name="elementos[]"]'));
-        appendDual(fd, 'positivos',      getVal('input[name="positivos[]"]'));
-        appendDual(fd, 'negativos',      getVal('input[name="negativos[]"]'));
-        appendDual(fd, 'tipoRef',        getVal('select[name="tipoRef[]"]'));
-        appendDual(fd, 'tiempoColegio',  getVal('input[name="tiempoColegio[]"]'));
-        appendDual(fd, 'tiempoPapas',    getVal('input[name="tiempoPapas[]"]'));
-        appendDual(fd, 'comportamiento', getVal('textarea[name="comportamiento[]"]'));
-        appendDual(fd, 'comentario',     getVal('textarea[name="comentario[]"]'));
+        // del bloque
+        appendDual(fd,'programa',       val('select[name="programa[]"]'));
+        appendDual(fd,'conj',           val('input[name="conj[]"]'));
+        appendDual(fd,'elementos',      val('input[name="elementos[]"]'));
+        appendDual(fd,'positivos',      val('input[name="positivos[]"]'));
+        appendDual(fd,'negativos',      val('input[name="negativos[]"]'));
+        appendDual(fd,'tipoRef',        val('select[name="tipoRef[]"]'));
+        appendDual(fd,'tiempoColegio',  val('input[name="tiempoColegio[]"]'));
+        appendDual(fd,'tiempoPapas',    val('input[name="tiempoPapas[]"]'));
+        appendDual(fd,'comportamiento', val('textarea[name="comportamiento[]"]'));
+        appendDual(fd,'comentario',     val('textarea[name="comentario[]"]'));
 
-        // Ayudas (checkboxes con names terminados en [])
-        const ayudas = b.querySelectorAll('input[type="checkbox"][name$="[]"]:checked');
-        ayudas.forEach(chk => {
-          fd.append(chk.name, chk.value);                 // con []
-          fd.append(chk.name.replace('[]',''), chk.value);// sin []
+        // ayudas
+        b.querySelectorAll('input[type="checkbox"][name^="ayuda"]:checked').forEach(chk=>{
+          const base = chk.name.replace(/\[\]$/,'');
+          fd.append(base, chk.value);
+          fd.append(base+'[]', chk.value);
         });
 
-        try { await postFormData(fd); ok++; }
-        catch (err) { failed.push(i+1); }
+        try{ await postFormData(fd); ok++; }
+        catch(err){ failed.push(i+1); }
       }
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = original;
+      submitBtn.disabled=false; submitBtn.textContent=original;
 
-      if (failed.length) {
+      if (failed.length){
         alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
       } else {
         alert(`Sesión guardada correctamente (${ok} programa/s).`);
@@ -320,6 +230,9 @@
         // this.reset(); document.getElementById('programasContainer').innerHTML='';
       }
     };
+
+    // inicia
+    window.addEventListener('load', loadConfig);
   </script>
 </body>
 </html>
