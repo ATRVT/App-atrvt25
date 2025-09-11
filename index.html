@@ -58,7 +58,7 @@
   <script>
     /*****************  CONFIG  *****************/
     // ⚠️ Reemplaza con TU URL de Apps Script (implementado como web app)
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzHc4hNjYzqygv13FEqSbGvQQ-oET0RwqutQDaacl0xQk2N55_bUdZ8BvyLxFPvegVe/exec';
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwjGj9Xbw0fln91vEwgFrupj33DRcjd7tXKF7XOR5bVSzP9Ij2ByIcgfwZx4hOyHFL3/exec';
 
     /***************  UI Helpers  ***************/
     function fillSelect(select, items, placeholder) {
@@ -162,15 +162,90 @@
       document.getElementById('addProgramBtn').onclick = addProgramBlock;
     });
 
-    /***************  Envío robusto  ***************/
-    // POST con XHR como antes, envuelto en Promesa
-    function postFormData(fd) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+   /* === INICIO PATCH ENVÍO ROBUSTO === */
+(function(){
+  // Helpers
+  function postFormData(fd){
+    return new Promise((resolve,reject)=>{
+      try{
+        var xhr = new XMLHttpRequest();
         xhr.open('POST', scriptUrl, true);
-        xhr.onload = () => (xhr.status === 200 ? resolve() : reject(new Error('HTTP ' + xhr.status)));
-        xhr.onerror = () => reject(new Error('network'));
+        xhr.onload = function(){ (xhr.status===200) ? resolve() : reject(new Error('HTTP '+xhr.status)); };
+        xhr.onerror = function(){ reject(new Error('network')); };
         xhr.send(fd);
+      }catch(err){ reject(err); }
+    });
+  }
+  function appendDual(fd,key,value){
+    if(value==null) value='';
+    fd.append(key, value);      // sin []
+    fd.append(key+'[]', value); // con []
+  }
+
+  document.getElementById('sessionForm').onsubmit = async function(e){
+    e.preventDefault();
+
+    const form = this;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const terapeuta  = (document.getElementById('terapeuta')?.value || '').trim();
+    const estudiante = (document.getElementById('estudiante')?.value || '').trim();
+    const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
+
+    if (!scriptUrl){ alert('Falta configurar scriptUrl con la URL del Web App.'); return; }
+    if (!terapeuta || !estudiante){ alert('Selecciona terapeuta y estudiante.'); return; }
+    if (blocks.length === 0){ alert('Agrega al menos un programa.'); return; }
+
+    if (submitBtn){ submitBtn.disabled = true; var original = submitBtn.textContent; submitBtn.textContent='Guardando...'; }
+
+    let ok=0, failed=[];
+    for (let i=0;i<blocks.length;i++){
+      const b = blocks[i];
+      const getVal = (sel) => (b.querySelector(sel)?.value || '').trim();
+
+      const fd = new FormData();
+      fd.append('action','saveSession');
+
+      // comunes
+      appendDual(fd,'terapeuta',terapeuta);
+      appendDual(fd,'estudiante',estudiante);
+
+      // campos del bloque (acepta name con y sin [])
+      appendDual(fd,'programa',       getVal('select[name="programa[]"], select[name="programa"]'));
+      appendDual(fd,'conj',           getVal('input[name="conj[]"], input[name="conj"]'));
+      appendDual(fd,'elementos',      getVal('input[name="elementos[]"], input[name="elementos"]'));
+      appendDual(fd,'positivos',      getVal('input[name="positivos[]"], input[name="positivos"]'));
+      appendDual(fd,'negativos',      getVal('input[name="negativos[]"], input[name="negativos"]'));
+      appendDual(fd,'tipoRef',        getVal('select[name="tipoRef[]"], select[name="tipoRef"]'));
+      appendDual(fd,'tiempoColegio',  getVal('input[name="tiempoColegio[]"], input[name="tiempoColegio"]'));
+      appendDual(fd,'tiempoPapas',    getVal('input[name="tiempoPapas[]"], input[name="tiempoPapas"]'));
+      appendDual(fd,'comportamiento', getVal('textarea[name="comportamiento[]"], textarea[name="comportamiento"]'));
+      appendDual(fd,'comentario',     getVal('textarea[name="comentario[]"], textarea[name="comentario"]'));
+
+      // ayudas (todas las que empiecen por "ayuda")
+      const ayudas = b.querySelectorAll('input[type="checkbox"][name^="ayuda"]:checked');
+      ayudas.forEach(chk=>{
+        const base = chk.name.replace(/\[\]$/,'');
+        fd.append(base+'[]', chk.value);
+        fd.append(base, chk.value);
+      });
+
+      try{ await postFormData(fd); ok++; }
+      catch(err){ failed.push(i+1); }
+    }
+
+    if (submitBtn){ submitBtn.disabled=false; submitBtn.textContent=original; }
+
+    if (failed.length){
+      alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
+    }else{
+      alert(`Sesión guardada correctamente (${ok} programa/s).`);
+      // Opcional: limpiar
+      // form.reset(); document.getElementById('programasContainer').innerHTML='';
+    }
+  };
+})();
+ /* === FIN PATCH ENVÍO ROBUSTO === */
+
       });
     }
 
