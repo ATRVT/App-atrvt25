@@ -56,165 +56,161 @@
   <!-- Iframe “sumidero” para POST sin CORS -->
   <iframe id="sink" name="sink"></iframe>
 
-  <script>
-    /* === Pega aquí tu URL /exec de Apps Script === */
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwXuyKbeHP4M4VbyUz_a78x1PoOuz1t1PpzBUWjZKNrkKHUZcioVqCLsMRBNTrPGEffGA/exec';
+<script>
+/* ========= CONFIG ========= */
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbxnRT_p0QOKNx_nEPtedtMzS9_ihAlHNVQufgMYFNWkFSGNCLZu5u3B2Lbnpl7bCfkcEg/exec'; // <-- tu /exec
 
-    /* ===== Helpers UI ===== */
-    function option(el, v, t){ const o=document.createElement('option'); o.value=v; o.textContent=t; el.appendChild(o); }
-    function fillSelect(sel, items, ph){ sel.innerHTML=''; option(sel,'',ph||'-- selecciona --'); (items||[]).forEach(x=>option(sel,x,x)); }
+/* ========= HELPERS UI ========= */
+function option(el, v, t){ const o=document.createElement('option'); o.value=v; o.textContent=t; el.appendChild(o); }
+function fillSelect(sel, items, ph){ sel.innerHTML=''; option(sel,'',ph||'-- selecciona --'); (items||[]).forEach(x=>option(sel,x,x)); }
+function appendDual(fd,key,value){ if(value==null) value=''; fd.append(key,value); fd.append(key+'[]',value); }
 
-    /* ===== JSONP: carga config SIN CORS ===== */
-    function onConfig(payload){
-      try{
-        const cfg = {
-          terapeutas:  payload.terapeutas  || [],
-          estudiantes: payload.estudiantes || [],
-          programas:   payload.programas   || [],
-          tiposRef:    payload.tiposRef    || []
-        };
-        fillSelect(document.getElementById('terapeuta'), cfg.terapeutas, '-- selecciona terapeuta --');
-        fillSelect(document.getElementById('estudiante'), cfg.estudiantes, '-- selecciona estudiante --');
-        document.getElementById('addProgramBtn').onclick = ()=> addProgramBlock(cfg);
-        if (document.getElementById('programasContainer').children.length===0) addProgramBlock(cfg);
-      }catch(e){ alert('Load failed'); }
-    }
-    function loadConfigJSONP(){
-      const s = document.createElement('script');
-      s.src = scriptUrl + '?action=getConfig&callback=onConfig&ts=' + Date.now();
-      s.onerror = ()=> alert('Load failed'); // Por si el <script> no carga
-      document.body.appendChild(s);
-    }
+/* ========= CARGA SIN CORS (JSONP) =========
+   Apps Script debe responder a ?action=getConfig&callback=onConfig
+   (usa el Code.gs que te dejé, que soporta JSONP) */
+function onConfig(payload){
+  if(!payload || payload.status!=='ok'){ alert('Load failed'); return; }
+  const cfg = {
+    terapeutas:  payload.terapeutas  || [],
+    estudiantes: payload.estudiantes || [],
+    programas:   payload.programas   || [],
+    tiposRef:    payload.tiposRef    || []
+  };
+  // llena selects principales
+  fillSelect(document.getElementById('terapeuta'), cfg.terapeutas, '-- selecciona terapeuta --');
+  fillSelect(document.getElementById('estudiante'), cfg.estudiantes, '-- selecciona estudiante --');
+  // botón agregar programa
+  document.getElementById('addProgramBtn').onclick = () => addProgramBlock(cfg);
+  // crea un bloque inicial
+  if (document.getElementById('programasContainer').children.length===0) addProgramBlock(cfg);
+}
+function loadConfig(){
+  const s=document.createElement('script');
+  s.src = scriptUrl + '?action=getConfig&callback=onConfig&ts=' + Date.now();
+  s.onerror = () => alert('Load failed');
+  document.body.appendChild(s);
+}
 
-    /* ===== Crear bloque de programa ===== */
-    function addProgramBlock(cfg){
-      const cont = document.getElementById('programasContainer');
-      const idx  = cont.children.length + 1;
-      const div  = document.createElement('div');
-      div.className='program';
-      div.innerHTML = `
-        <div class="actions" style="margin-top:0">
-          <h3>Programa #${idx}</h3>
-          <button type="button" class="btn btn-ghost danger remove-program">Eliminar</button>
-        </div>
+/* ========= BLOQUE DE PROGRAMA ========= */
+function addProgramBlock(cfg){
+  const cont = document.getElementById('programasContainer');
+  const idx  = cont.children.length + 1;
+  const div  = document.createElement('div');
+  div.className='program';
+  div.innerHTML = `
+    <div class="actions" style="margin-top:0">
+      <h3>Programa #${idx}</h3>
+      <button type="button" class="btn btn-ghost danger remove-program">Eliminar</button>
+    </div>
 
-        <label>Programa</label>
-        <select name="programa[]"></select>
+    <label>Programa</label>
+    <select name="programa[]"></select>
 
-        <div class="row-3">
-          <div><label>Conjuntos</label><input type="number" min="0" name="conj[]" value="0"></div>
-          <div><label>Elementos</label><input type="number" min="0" name="elementos[]" value="0"></div>
-          <div>
-            <label>Tipo Refuerzo</label>
-            <select name="tipoRef[]"></select>
-          </div>
-        </div>
+    <div class="row-3">
+      <div><label>Conjuntos</label><input type="number" min="0" name="conj[]" value="0"></div>
+      <div><label>Elementos</label><input type="number" min="0" name="elementos[]" value="0"></div>
+      <div>
+        <label>Tipo Refuerzo</label>
+        <select name="tipoRef[]"></select>
+      </div>
+    </div>
 
-        <div class="row-3">
-          <div><label>Positivos</label><input type="number" min="0" name="positivos[]" value="0"></div>
-          <div><label>Negativos</label><input type="number" min="0" name="negativos[]" value="0"></div>
-          <div><label>Tiempo con Papás (min)</label><input type="number" min="0" name="tiempoPapas[]" value="0"></div>
-        </div>
+    <div class="row-3">
+      <div><label>Positivos</label><input type="number" min="0" name="positivos[]" value="0"></div>
+      <div><label>Negativos</label><input type="number" min="0" name="negativos[]" value="0"></div>
+      <div><label>Tiempo con Papás (min)</label><input type="number" min="0" name="tiempoPapas[]" value="0"></div>
+    </div>
 
-        <div class="row">
-          <div><label>Tiempo en Colegio (min)</label><input type="number" min="0" name="tiempoColegio[]" value="0"></div>
-          <div><label>Comportamiento observado</label><textarea name="comportamiento[]"></textarea></div>
-        </div>
+    <div class="row">
+      <div><label>Tiempo en Colegio (min)</label><input type="number" min="0" name="tiempoColegio[]" value="0"></div>
+      <div><label>Comportamiento observado</label><textarea name="comportamiento[]"></textarea></div>
+    </div>
 
-        <label>Ayudas aplicadas</label>
-        <div class="chips">
-          <label class="chip"><input type="checkbox" name="ayudaVerbal[]"  value="verbal"> Verbal</label>
-          <label class="chip"><input type="checkbox" name="ayudaFisica[]"  value="fisica"> Física</label>
-          <label class="chip"><input type="checkbox" name="ayudaGestual[]" value="gestual"> Gestual</label>
-        </div>
+    <label>Ayudas aplicadas</label>
+    <div class="chips">
+      <label class="chip"><input type="checkbox" name="ayudaVerbal[]"  value="verbal"> Verbal</label>
+      <label class="chip"><input type="checkbox" name="ayudaFisica[]"  value="fisica"> Física</label>
+      <label class="chip"><input type="checkbox" name="ayudaGestual[]" value="gestual"> Gestual</label>
+    </div>
 
-        <label>Comentario</label>
-        <textarea name="comentario[]"></textarea>
-      `;
-      div.querySelector('.remove-program').onclick = ()=>{
-        div.remove(); [...document.querySelectorAll('#programasContainer .program h3')].forEach((h,i)=>h.textContent='Programa #'+(i+1));
-      };
-      cont.appendChild(div);
-      // llena selects
-      fillSelect(div.querySelector('select[name="programa[]"]'), (cfg.programas||[]), '-- selecciona programa --');
-      const tiposRef = (cfg.tiposRef && cfg.tiposRef.length) ? cfg.tiposRef : ['Comida','Juego','Social'];
-      fillSelect(div.querySelector('select[name="tipoRef[]"]'), tiposRef, '-- selecciona tipo --');
-    }
+    <label>Comentario</label>
+    <textarea name="comentario[]"></textarea>
+  `;
+  div.querySelector('.remove-program').onclick = () => {
+    div.remove(); [...document.querySelectorAll('#programasContainer .program h3')].forEach((h,i)=>h.textContent='Programa #'+(i+1));
+  };
+  cont.appendChild(div);
 
-    /* ===== Envío sin CORS: formulario → iframe oculto ===== */
-    function submitOneProgram(payload){
-      return new Promise((resolve)=>{
-        // Crea form temporal
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = scriptUrl;
-        form.target = 'sink'; // iframe oculto
-        // helper para añadir doble clave
-        const add = (k,v)=>{ 
-          const i1=document.createElement('input'); i1.type='hidden'; i1.name=k; i1.value=(v==null?'':v); form.appendChild(i1);
-          const i2=document.createElement('input'); i2.type='hidden'; i2.name=k+'[]'; i2.value=(v==null?'':v); form.appendChild(i2);
-        };
-        add('action','saveSession');
-        Object.keys(payload).forEach(k=> add(k, payload[k]));
-        document.body.appendChild(form);
+  // llena selects de este bloque
+  fillSelect(div.querySelector('select[name="programa[]"]'), (cfg.programas||[]), '-- selecciona programa --');
+  const tiposRef = (cfg.tiposRef && cfg.tiposRef.length) ? cfg.tiposRef : ['Comida','Juego','Social'];
+  fillSelect(div.querySelector('select[name="tipoRef[]"]'), tiposRef, '-- selecciona tipo --');
+}
 
-        // Escuchamos la carga del iframe (no podemos leer contenido, pero el load indica respuesta)
-        const sink = document.getElementById('sink');
-        const onloadOnce = ()=>{ sink.removeEventListener('load', onloadOnce); form.remove(); resolve(); };
-        sink.addEventListener('load', onloadOnce);
-        form.submit();
-      });
-    }
+/* ========= ENVÍO SIN CORS =========
+   Usamos fetch con {mode:'no-cors'} → el navegador no bloquea.
+   No podemos leer la respuesta (es “opaque”), pero el WebApp la procesa. */
+function postOne(fd){
+  return fetch(scriptUrl, { method:'POST', mode:'no-cors', body: fd })
+         .then(()=>true).catch(()=>false);
+}
 
-    document.getElementById('sessionForm').onsubmit = async function(e){
-      e.preventDefault();
+document.getElementById('sessionForm').onsubmit = async function(e){
+  e.preventDefault();
 
-      const terapeuta  = (document.getElementById('terapeuta')?.value || '').trim();
-      const estudiante = (document.getElementById('estudiante')?.value || '').trim();
-      const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
-      const submitBtn = this.querySelector('button[type="submit"]');
+  const terapeuta  = (document.getElementById('terapeuta')?.value || '').trim();
+  const estudiante = (document.getElementById('estudiante')?.value || '').trim();
+  const blocks = Array.from(document.querySelectorAll('#programasContainer .program'));
+  const submitBtn = this.querySelector('button[type="submit"]');
 
-      if (!terapeuta || !estudiante) { alert('Selecciona terapeuta y estudiante.'); return; }
-      if (!blocks.length) { alert('Agrega al menos un programa.'); return; }
+  if (!terapeuta || !estudiante) { alert('Selecciona terapeuta y estudiante.'); return; }
+  if (!blocks.length) { alert('Agrega al menos un programa.'); return; }
 
-      submitBtn.disabled = true; const original = submitBtn.textContent; submitBtn.textContent = 'Guardando…';
+  submitBtn.disabled=true; const original=submitBtn.textContent; submitBtn.textContent='Guardando…';
 
-      let ok=0, failed=[];
-      for (let i=0;i<blocks.length;i++){
-        const b = blocks[i];
-        const val = sel => (b.querySelector(sel)?.value || '').trim();
-        const ayudas = Array.from(b.querySelectorAll('input[type="checkbox"][name^="ayuda"]:checked')).map(ch=>ch.value);
+  let ok=0, failed=[];
+  for (let i=0;i<blocks.length;i++){
+    const b = blocks[i];
+    const val = sel => (b.querySelector(sel)?.value || '').trim();
 
-        const payload = {
-          terapeuta,
-          estudiante,
-          programa:       val('select[name="programa[]"]'),
-          conj:           val('input[name="conj[]"]'),
-          elementos:      val('input[name="elementos[]"]'),
-          positivos:      val('input[name="positivos[]"]'),
-          negativos:      val('input[name="negativos[]"]'),
-          tipoRef:        val('select[name="tipoRef[]"]'),
-          tiempoColegio:  val('input[name="tiempoColegio[]"]'),
-          tiempoPapas:    val('input[name="tiempoPapas[]"]'),
-          comportamiento: val('textarea[name="comportamiento[]"]'),
-          comentario:     val('textarea[name="comentario[]"]')
-        };
+    const fd = new FormData();
+    fd.append('action','saveSession');
+    appendDual(fd,'terapeuta',terapeuta);
+    appendDual(fd,'estudiante',estudiante);
+    appendDual(fd,'programa',       val('select[name="programa[]"]'));
+    appendDual(fd,'conj',           val('input[name="conj[]"]'));
+    appendDual(fd,'elementos',      val('input[name="elementos[]"]'));
+    appendDual(fd,'positivos',      val('input[name="positivos[]"]'));
+    appendDual(fd,'negativos',      val('input[name="negativos[]"]'));
+    appendDual(fd,'tipoRef',        val('select[name="tipoRef[]"]'));
+    appendDual(fd,'tiempoColegio',  val('input[name="tiempoColegio[]"]'));
+    appendDual(fd,'tiempoPapas',    val('input[name="tiempoPapas[]"]'));
+    appendDual(fd,'comportamiento', val('textarea[name="comportamiento[]"]'));
+    appendDual(fd,'comentario',     val('textarea[name="comentario[]"]'));
 
-        // Añade ayudas como claves extra (ayudaVerbal, etc.) duplicadas en submitOneProgram
-        ayudas.forEach(v => { payload['ayuda'+v.charAt(0).toUpperCase()+v.slice(1)] = v; });
+    // ayudas
+    b.querySelectorAll('input[type="checkbox"][name^="ayuda"]:checked').forEach(chk=>{
+      const base = chk.name.replace(/\[\]$/,'');
+      fd.append(base, chk.value);
+      fd.append(base+'[]', chk.value);
+    });
 
-        try { await submitOneProgram(payload); ok++; }
-        catch(e){ failed.push(i+1); }
-      }
+    const okThis = await postOne(fd);
+    if (okThis) ok++; else failed.push(i+1);
+  }
 
-      submitBtn.disabled = false; submitBtn.textContent = original;
+  submitBtn.disabled=false; submitBtn.textContent=original;
 
-      if (failed.length) alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
-      else alert(`Sesión guardada correctamente (${ok} programa/s).`);
-    };
+  if (failed.length){
+    alert(`Guardado parcial: ${ok}/${blocks.length}. Falló en: ${failed.join(', ')}`);
+  } else {
+    alert(`Sesión guardada correctamente (${ok} programa/s).`);
+    // this.reset(); document.getElementById('programasContainer').innerHTML='';
+  }
+};
 
-    // Inicia (JSONP)
-    window.addEventListener('load', loadConfigJSONP);
-  </script>
+/* Inicia: carga config por JSONP (sin CORS) */
+window.addEventListener('load', loadConfig);
+</script>
 </body>
 </html>
